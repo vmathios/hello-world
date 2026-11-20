@@ -91,7 +91,9 @@ def test_api_export_and_import_roundtrip(tmp_path, monkeypatch):
     r = c.post("/api/abpmer/export", json={"project": proj, "concept": proj["concepts"][0]["name"], "package": "IAC"})
     assert r.status_code == 200
     ws = openpyxl.load_workbook(io.BytesIO(r.content)).active
-    assert ws["H4"].value == 5                       # 60 cables / 12 per trip -> one cycle x 5
+    assert ws["H4"].value == 1                       # RPL loaded -> every trip listed with own coordinates
+    names = [r[0] for r in ws.iter_rows(min_row=14, max_col=1, values_only=True) if r[0]]
+    assert any("IAC-01-1" in n and "freelay (@ 360 m/h)" in n for n in names)
     r = c.post("/api/abpmer/import", files={"file": ("res.xlsx", fake_result(80.0, "IAC"), "application/octet-stream")})
     assert r.status_code == 200
     rid = r.json()["id"]

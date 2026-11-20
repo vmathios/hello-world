@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from datetime import date
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -27,6 +27,8 @@ class Step(BaseModel):
     limits: WeatherLimits = WeatherLimits()
     group_with_next: bool = Field(False, description="Must be done in the same weather window as the next step")
     daylight_only: bool = False
+    rate_m_per_h: Optional[float] = Field(None, description="Rate-based step (e.g. freelay): duration = RPL route length / rate")
+    position: Literal["start", "end"] = Field("start", description="With an RPL: task at cable first end or second end")
 
 
 class SurvivalLimit(BaseModel):
@@ -37,8 +39,6 @@ class SurvivalLimit(BaseModel):
 class Port(BaseModel):
     name: str
     location: Coord
-    day_rate_eur: float = 0.0          # quayside / laydown rental
-    fixed_cost_eur: float = 0.0        # e.g. port upgrades, quay reinforcement
 
 
 class Vessel(BaseModel):
@@ -46,7 +46,6 @@ class Vessel(BaseModel):
     type: str = ""                     # e.g. "Jack-up WTIV", "HLV", "CLV"
     transit_speed_kn: float = 10.0
     day_rate_eur: float
-    mob_demob_eur: float = 0.0
     deck_capacity: int = Field(1, description="Units carried per trip")
 
 
@@ -64,11 +63,12 @@ class WorkPackage(BaseModel):
     load_steps: list[Step] = []        # per unit, at port
     transit_limits: WeatherLimits = WeatherLimits()
     install_steps: list[Step] = []     # per unit, at site
-    infield_move_h: float = 2.0        # between installation positions
+    infield_move_h: float = 2.0        # between installation positions (no RPL)
+    infield_speed_kn: float = 6.0      # between cables when an RPL is loaded
+    rpl: Optional[str] = Field(None, description="ID of an uploaded Route Position List (cable packages)")
     contingency_factor: float = 1.5    # weather window = duration x factor (ABPmer "Weather window")
     survival_limit: Optional[SurvivalLimit] = None
     abpmer_result: Optional[str] = Field(None, description="ID of an imported ABPmer result; overrides built-in simulation")
-    extra_costs_eur: float = 0.0
 
 
 class Concept(BaseModel):
@@ -106,6 +106,7 @@ class PackageResult(BaseModel):
     port: str
     quantity: int
     trips: int
+    route_km: Optional[float] = None
     transit_nm: float
     net_duration_days: float           # no weather
     start: str
@@ -115,7 +116,8 @@ class PackageResult(BaseModel):
     p90_days: float
     weather_downtime_pct: float
     downtime_source: str = "simulation"
-    cost_eur: dict[str, float]
+    day_rate_eur: float
+    cost_eur: float
 
 
 class ConceptResult(BaseModel):

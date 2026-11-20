@@ -53,8 +53,10 @@ def index():
 from fastapi import Body
 from fastapi.responses import Response
 
-from . import abpmer
-from .engine import build_sequence, distance_nm
+from fastapi import Form
+
+from . import abpmer, rpl
+from .engine import build_sequence
 
 XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
@@ -75,10 +77,15 @@ def abpmer_export(project: Project = Body(...), concept: str = Body(...), packag
     port = next((p for p in c.ports if p.name == pkg.port), None)
     if not v or not port:
         raise HTTPException(422, "Package references unknown vessel or port")
-    nm = distance_nm(port.location, project.site)
+    try:
+        cables = rpl.load_rpl(pkg.rpl) if pkg.rpl else None
+    except ValueError as e:
+        raise HTTPException(422, str(e))
     cap = max(1, v.deck_capacity)
-    cycle = mode == "cycle" or (mode == "auto" and pkg.quantity % cap == 0)
-    steps, trips = build_sequence(pkg, v, nm, port.location, project.site, trips_limit=1 if cycle else None)
+    # With an RPL every trip has its own coordinates/lengths, so list them all.
+    cycle = mode == "cycle" or (mode == "auto" and not cables and pkg.quantity % cap == 0)
+    steps, trips = build_sequence(pkg, v, port.location, project.site, cables,
+                                  trips_limit=1 if cycle else None)
     sl = pkg.survival_limit
     data = abpmer.export_input(f"{pkg.name} - {c.name}", steps, repeat=trips if cycle else 1,
                                survival=(sl.hs_max, sl.window_h) if sl else (3.5, 24.0))
@@ -96,3 +103,16 @@ async def abpmer_import(file: UploadFile) -> dict:
         raise HTTPException(422, f"Could not read ABPmer result: {e}")
     rid = abpmer.save_result(table)
     return {"id": rid, **abpmer.summary(table)}
+
+
+@app.post("/api/rpl")
+async def rpl_upload(file: UploadFile, epsg: int | None = Form(None)) -> dict:
+    """Upload a Route Position List CSV; returns an id to set as `rpl` on a cable package."""
+    try:
+        cables = rpl.parse_rpl((await file.read()).decode("utf-8-sig"), epsg)
+    except ValueError as e:
+        raise HTTPException(422, str(e))
+    except Exception as e:  # noqa: BLE001 - e.g. bad EPSG code
+        raise HTTPException(422, f"Could not read RPL: {e}")
+    name = pathlib.Path(file.filename or "rpl").stem
+    return {"id": rpl.save_rpl(name, cables), **rpl.summary(cables)}

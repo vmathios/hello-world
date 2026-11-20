@@ -159,7 +159,7 @@ function render(data) {
       <div class="desc">${esc(c.description)}</div>
       <div class="kv"><span>P${data.percentile} completion</span><span>${fmtDate(c.p50_end)}${c.p50_end === bestEnd ? '<span class="best">earliest</span>' : ''}</span></div>
       <div class="kv"><span>Campaign duration</span><span>${c.p50_total_days} d</span></div>
-      <div class="kv"><span>T&amp;I cost</span><span>${fmtEUR(c.total_cost_eur)}${c.total_cost_eur === bestCost ? '<span class="best">lowest</span>' : ''}</span></div>
+      <div class="kv"><span>Vessel CAPEX</span><span>${fmtEUR(c.total_cost_eur)}${c.total_cost_eur === bestCost ? '<span class="best">lowest</span>' : ''}</span></div>
     </div>`).join('');
 
   const warns = data.concepts.flatMap(c => c.warnings.map(w => `${esc(c.name)}: ${esc(w)}`));
@@ -174,14 +174,14 @@ function render(data) {
         <span><i class="whisk"></i>P10–P90</span></div>
       <div class="chart" id="gantt"></div></div>
     <div class="card"><h2>T&amp;I cost comparison</h2>
-      <p class="sub">P${data.percentile} durations × day rates, plus mobilisation, port and other costs</p>
-      <div class="legend" id="costLegend"></div>
+      <p class="sub">CAPEX = vessel day rate × P${data.percentile} duration, split by component</p>
+      <div class="legend">${comps.map(c => `<span><i style="background:${compColor(c)}"></i>${esc(c)}</span>`).join('')}</div>
       <div class="chart" id="cost"></div></div>
     <div class="card"><h2>Work package detail</h2>
       <div class="tablewrap" id="table"></div></div>`;
 
   drawGantt(data, compColor);
-  drawCost(data);
+  drawCost(data, comps, compColor);
   drawTable(data);
 }
 
@@ -238,10 +238,8 @@ function drawGantt(data, compColor) {
   });
 }
 
-function drawCost(data) {
-  const cats = Object.keys(data.concepts[0].cost_breakdown_eur);
-  const col = i => `var(--series-${i + 1})`;
-  $('#costLegend').innerHTML = cats.map((c, i) => `<span><i style="background:${col(i)}"></i>${esc(c)}</span>`).join('');
+function drawCost(data, cats, compColor) {
+  const col = i => compColor(cats[i]);
   const host = $('#cost');
   const W = Math.max(host.clientWidth, 560), labelW = 210, padR = 80, rowH = 34, axisH = 22;
   const max = Math.max(...data.concepts.map(c => c.total_cost_eur));
@@ -260,7 +258,7 @@ function drawCost(data) {
     let acc = 0;
     const nz = cats.filter(k => c.cost_breakdown_eur[k] > 0);
     cats.forEach((k, i) => {
-      const v = c.cost_breakdown_eur[k]; if (v <= 0) return;
+      const v = c.cost_breakdown_eur[k] || 0; if (v <= 0) return;
       const isLast = k === nz[nz.length - 1];
       const x0 = x(acc), w = x(acc + v) - x0;
       // round only the data-end; 2px surface gap between segments
@@ -276,7 +274,9 @@ function drawCost(data) {
   host.querySelectorAll('path[data-t]').forEach(el => {
     const [cn, k, v] = el.dataset.t.split('|');
     const tot = data.concepts.find(c => c.name === cn).total_cost_eur;
-    const html = `<b>${esc(k)}</b>${esc(cn)}<br>${fmtEUR(+v)} (${(100 * v / tot).toFixed(0)}% of total)`;
+    const pk = data.concepts.find(c => c.name === cn).packages.filter(p => p.component === k);
+    const html = `<b>${esc(k)}</b>${esc(cn)}<br>${fmtEUR(+v)} (${(100 * v / tot).toFixed(0)}% of total)<br>` +
+      pk.map(p => `${esc(p.vessel)}: €${(p.day_rate_eur / 1000).toFixed(0)}k/d × ${p.p50_days} d`).join('<br>');
     el.addEventListener('mouseenter', e => showTip(e, html));
     el.addEventListener('mousemove', moveTip);
     el.addEventListener('mouseleave', hideTip);
@@ -286,19 +286,21 @@ function drawCost(data) {
 function drawTable(data) {
   const rows = data.concepts.flatMap(c => c.packages.map(p => `<tr>
     <td>${esc(c.name)}</td><td>${esc(p.name)}</td><td>${esc(p.vessel)}</td><td>${esc(p.port)}</td>
-    <td class="num">${p.quantity}</td><td class="num">${p.trips}</td><td class="num">${p.transit_nm}</td>
+    <td class="num">${p.quantity}</td><td class="num">${p.trips}</td><td class="num">${p.route_km ?? '–'}</td><td class="num">${p.transit_nm}</td>
     <td>${p.start}</td><td>${p.p50_end}</td><td class="num">${p.net_duration_days}</td>
     <td class="num">${p.p10_days}</td><td class="num">${p.p50_days}</td><td class="num">${p.p90_days}</td>
     <td class="num">${p.weather_downtime_pct}%</td>
-    <td class="num">${fmtEUR(Object.values(p.cost_eur).reduce((a, b) => a + b, 0))}</td>
+    <td class="num">€${(p.day_rate_eur / 1000).toFixed(0)}k</td><td class="num">${fmtEUR(p.cost_eur)}</td>
     <td class="src">${esc(p.downtime_source)}</td>
     <td><button class="act" data-act="export" data-c="${esc(c.name)}" data-p="${esc(p.id)}">ABPmer input ↓</button><button
       class="act" data-act="import" data-c="${esc(c.name)}" data-p="${esc(p.id)}">Import result ↑</button>${p.downtime_source !== 'simulation'
-      ? `<button class="act" data-act="clear" data-c="${esc(c.name)}" data-p="${esc(p.id)}">Use simulation</button>` : ''}</td></tr>`)).join('');
+      ? `<button class="act" data-act="clear" data-c="${esc(c.name)}" data-p="${esc(p.id)}">Use simulation</button>` : ''}</td>
+    <td><button class="act" data-act="rpl" data-c="${esc(c.name)}" data-p="${esc(p.id)}">${p.route_km != null ? 'Replace RPL' : 'Load RPL'} ↑</button>${p.route_km != null
+      ? `<button class="act" data-act="clearrpl" data-c="${esc(c.name)}" data-p="${esc(p.id)}">Remove</button>` : ''}</td></tr>`)).join('');
   $('#table').innerHTML = `<table><thead><tr><th>Concept</th><th>Package</th><th>Vessel</th><th>Port</th>
-    <th class="num">Qty</th><th class="num">Trips</th><th class="num">Transit nm</th><th>Start</th><th>P50 finish</th>
+    <th class="num">Qty</th><th class="num">Trips</th><th class="num">Route km</th><th class="num">Transit nm</th><th>Start</th><th>P50 finish</th>
     <th class="num">Net d</th><th class="num">P10 d</th><th class="num">P50 d</th><th class="num">P90 d</th>
-    <th class="num">Downtime</th><th class="num">Cost</th><th>Downtime source</th><th>ABPmer</th></tr></thead><tbody>${rows}</tbody></table>`;
+    <th class="num">Downtime</th><th class="num">Day rate</th><th class="num">CAPEX</th><th>Downtime source</th><th>ABPmer</th><th>RPL</th></tr></thead><tbody>${rows}</tbody></table>`;
   $('#table').querySelectorAll('button.act').forEach(b => b.onclick = () => abpmerAction(b.dataset.act, b.dataset.c, b.dataset.p));
 }
 
@@ -331,6 +333,28 @@ async function abpmerAction(act, concept, pkgId) {
         run();
       };
       inp.click();
+    } else if (act === 'rpl') {
+      const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.csv';
+      inp.onchange = async () => {
+        const send = async epsg => {
+          const fd = new FormData(); fd.append('file', inp.files[0]); if (epsg) fd.append('epsg', epsg);
+          const r = await fetch('/api/rpl', { method: 'POST', body: fd });
+          return [r.ok, await r.json()];
+        };
+        let [ok, d] = await send();
+        if (!ok && String(d.detail).startsWith('EPSG_REQUIRED')) {
+          const epsg = prompt('The RPL uses Easting/Northing. Enter the EPSG code of its CRS (e.g. 32631 = WGS84 / UTM 31N, 25831 = ETRS89 / UTM 31N):');
+          if (!epsg) return;
+          [ok, d] = await send(epsg);
+        }
+        if (!ok) { msg.textContent = d.detail; return; }
+        editPackage(concept, pkgId, p => { p.rpl = d.id; p.quantity = d.cables; });
+        run();
+      };
+      inp.click();
+    } else if (act === 'clearrpl') {
+      editPackage(concept, pkgId, p => { delete p.rpl; });
+      run();
     } else if (act === 'clear') {
       editPackage(concept, pkgId, p => { delete p.abpmer_result; });
       run();
@@ -341,11 +365,11 @@ async function abpmerAction(act, concept, pkgId) {
 function exportCSV() {
   if (!last) return;
   const head = ['concept','package','component','vessel','port','quantity','trips','transit_nm','start','p50_end',
-    'net_days','p10_days','p50_days','p90_days','downtime_pct','vessel_eur','mob_eur','port_eur','other_eur'];
+    'net_days','p10_days','p50_days','p90_days','downtime_pct','route_km','day_rate_eur','capex_eur','downtime_source'];
   const q = v => /[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : v;
   const lines = [head.join(',')].concat(last.concepts.flatMap(c => c.packages.map(p => [c.name, p.name, p.component,
     p.vessel, p.port, p.quantity, p.trips, p.transit_nm, p.start, p.p50_end, p.net_duration_days, p.p10_days,
-    p.p50_days, p.p90_days, p.weather_downtime_pct, ...Object.values(p.cost_eur)].map(q).join(','))));
+    p.p50_days, p.p90_days, p.weather_downtime_pct, p.route_km ?? '', p.day_rate_eur, p.cost_eur, p.downtime_source].map(q).join(','))));
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' }));
   a.download = (last.project || 'schedule').replace(/\W+/g, '_') + '_schedule.csv';

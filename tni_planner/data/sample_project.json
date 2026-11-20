@@ -20,18 +20,14 @@
           "location": {
             "lat": 53.45,
             "lon": 6.83
-          },
-          "day_rate_eur": 15000,
-          "fixed_cost_eur": 1500000
+          }
         },
         {
           "name": "Rotterdam",
           "location": {
             "lat": 51.95,
             "lon": 4.03
-          },
-          "day_rate_eur": 12000,
-          "fixed_cost_eur": 0
+          }
         }
       ],
       "vessels": [
@@ -40,7 +36,6 @@
           "type": "Cable lay vessel",
           "transit_speed_kn": 11,
           "day_rate_eur": 130000,
-          "mob_demob_eur": 1200000,
           "deck_capacity": 12
         },
         {
@@ -48,7 +43,6 @@
           "type": "Floating HLV (DP)",
           "transit_speed_kn": 10,
           "day_rate_eur": 380000,
-          "mob_demob_eur": 4000000,
           "deck_capacity": 4
         },
         {
@@ -56,7 +50,6 @@
           "type": "Jack-up WTIV",
           "transit_speed_kn": 11,
           "day_rate_eur": 290000,
-          "mob_demob_eur": 3000000,
           "deck_capacity": 4
         }
       ],
@@ -78,7 +71,8 @@
                 "ws_max": 15,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             }
           ],
           "transit_limits": {
@@ -94,7 +88,8 @@
                 "ws_max": 12,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             },
             {
               "name": "pile driving",
@@ -104,7 +99,8 @@
                 "ws_max": 15,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             },
             {
               "name": "noise mitigation retrieval",
@@ -114,7 +110,8 @@
                 "ws_max": 15,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             }
           ],
           "infield_move_h": 2
@@ -137,13 +134,15 @@
                 "ws_max": 16,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             }
           ],
           "transit_limits": {
             "hs_max": null,
             "ws_max": 15
           },
+          "rpl": "sample-demo-iac",
           "install_steps": [
             {
               "name": "pre pull-in survey",
@@ -153,7 +152,8 @@
                 "ws_max": 15,
                 "uc_max": 0.75
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             },
             {
               "name": "first end pull-in",
@@ -163,7 +163,8 @@
                 "ws_max": 15,
                 "uc_max": 0.75
               },
-              "group_with_next": true
+              "group_with_next": true,
+              "position": "start"
             },
             {
               "name": "achieve overpull & secure temporary hang-off",
@@ -173,7 +174,8 @@
                 "ws_max": 15,
                 "uc_max": null
               },
-              "group_with_next": true
+              "group_with_next": true,
+              "position": "start"
             },
             {
               "name": "freelay",
@@ -183,7 +185,9 @@
                 "ws_max": 15,
                 "uc_max": null
               },
-              "group_with_next": true
+              "group_with_next": true,
+              "position": "start",
+              "rate_m_per_h": 360
             },
             {
               "name": "cut and seal cable",
@@ -193,7 +197,8 @@
                 "ws_max": 15,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "end"
             },
             {
               "name": "second end pull-in",
@@ -203,10 +208,12 @@
                 "ws_max": 15,
                 "uc_max": 0.75
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "end"
             }
           ],
           "infield_move_h": 1.5,
+          "infield_speed_kn": 6,
           "survival_limit": {
             "hs_max": 3.5,
             "window_h": 24
@@ -230,7 +237,8 @@
                 "ws_max": 12,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             }
           ],
           "transit_limits": {
@@ -246,7 +254,8 @@
                 "ws_max": 12,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             },
             {
               "name": "tower",
@@ -256,7 +265,8 @@
                 "ws_max": 12,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             },
             {
               "name": "nacelle",
@@ -266,7 +276,8 @@
                 "ws_max": 10,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             },
             {
               "name": "blades (3x)",
@@ -276,7 +287,8 @@
                 "ws_max": 10,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             },
             {
               "name": "jack-down",
@@ -286,7 +298,8 @@
                 "ws_max": 12,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             }
           ],
           "infield_move_h": 2
@@ -302,18 +315,14 @@
           "location": {
             "lat": 55.47,
             "lon": 8.44
-          },
-          "day_rate_eur": 18000,
-          "fixed_cost_eur": 500000
+          }
         },
         {
           "name": "Rotterdam",
           "location": {
             "lat": 51.95,
             "lon": 4.03
-          },
-          "day_rate_eur": 12000,
-          "fixed_cost_eur": 0
+          }
         }
       ],
       "vessels": [
@@ -322,7 +331,6 @@
           "type": "Cable lay vessel",
           "transit_speed_kn": 11,
           "day_rate_eur": 130000,
-          "mob_demob_eur": 1200000,
           "deck_capacity": 12
         },
         {
@@ -330,7 +338,6 @@
           "type": "Floating HLV (DP)",
           "transit_speed_kn": 10,
           "day_rate_eur": 380000,
-          "mob_demob_eur": 4000000,
           "deck_capacity": 4
         },
         {
@@ -338,7 +345,6 @@
           "type": "Jack-up WTIV (next-gen)",
           "transit_speed_kn": 12,
           "day_rate_eur": 340000,
-          "mob_demob_eur": 3500000,
           "deck_capacity": 6
         }
       ],
@@ -360,7 +366,8 @@
                 "ws_max": 15,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             }
           ],
           "transit_limits": {
@@ -376,7 +383,8 @@
                 "ws_max": 12,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             },
             {
               "name": "pile driving",
@@ -386,7 +394,8 @@
                 "ws_max": 15,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             },
             {
               "name": "noise mitigation retrieval",
@@ -396,7 +405,8 @@
                 "ws_max": 15,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             }
           ],
           "infield_move_h": 2
@@ -419,13 +429,15 @@
                 "ws_max": 16,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             }
           ],
           "transit_limits": {
             "hs_max": null,
             "ws_max": 15
           },
+          "rpl": "sample-demo-iac",
           "install_steps": [
             {
               "name": "pre pull-in survey",
@@ -435,7 +447,8 @@
                 "ws_max": 15,
                 "uc_max": 0.75
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             },
             {
               "name": "first end pull-in",
@@ -445,7 +458,8 @@
                 "ws_max": 15,
                 "uc_max": 0.75
               },
-              "group_with_next": true
+              "group_with_next": true,
+              "position": "start"
             },
             {
               "name": "achieve overpull & secure temporary hang-off",
@@ -455,7 +469,8 @@
                 "ws_max": 15,
                 "uc_max": null
               },
-              "group_with_next": true
+              "group_with_next": true,
+              "position": "start"
             },
             {
               "name": "freelay",
@@ -465,7 +480,9 @@
                 "ws_max": 15,
                 "uc_max": null
               },
-              "group_with_next": true
+              "group_with_next": true,
+              "position": "start",
+              "rate_m_per_h": 360
             },
             {
               "name": "cut and seal cable",
@@ -475,7 +492,8 @@
                 "ws_max": 15,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "end"
             },
             {
               "name": "second end pull-in",
@@ -485,10 +503,12 @@
                 "ws_max": 15,
                 "uc_max": 0.75
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "end"
             }
           ],
           "infield_move_h": 1.5,
+          "infield_speed_kn": 6,
           "survival_limit": {
             "hs_max": 3.5,
             "window_h": 24
@@ -512,7 +532,8 @@
                 "ws_max": 12,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             }
           ],
           "transit_limits": {
@@ -528,7 +549,8 @@
                 "ws_max": 12,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             },
             {
               "name": "tower",
@@ -538,7 +560,8 @@
                 "ws_max": 12,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             },
             {
               "name": "nacelle",
@@ -548,7 +571,8 @@
                 "ws_max": 10,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             },
             {
               "name": "blades (3x)",
@@ -558,7 +582,8 @@
                 "ws_max": 10,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             },
             {
               "name": "jack-down",
@@ -568,7 +593,8 @@
                 "ws_max": 12,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             }
           ],
           "infield_move_h": 2
@@ -584,18 +610,14 @@
           "location": {
             "lat": 53.45,
             "lon": 6.83
-          },
-          "day_rate_eur": 15000,
-          "fixed_cost_eur": 1500000
+          }
         },
         {
           "name": "Rotterdam",
           "location": {
             "lat": 51.95,
             "lon": 4.03
-          },
-          "day_rate_eur": 12000,
-          "fixed_cost_eur": 0
+          }
         }
       ],
       "vessels": [
@@ -604,7 +626,6 @@
           "type": "Cable lay vessel",
           "transit_speed_kn": 11,
           "day_rate_eur": 130000,
-          "mob_demob_eur": 1200000,
           "deck_capacity": 12
         },
         {
@@ -612,7 +633,6 @@
           "type": "Jack-up (foundations)",
           "transit_speed_kn": 9,
           "day_rate_eur": 230000,
-          "mob_demob_eur": 2500000,
           "deck_capacity": 3
         },
         {
@@ -620,7 +640,6 @@
           "type": "Jack-up WTIV",
           "transit_speed_kn": 11,
           "day_rate_eur": 290000,
-          "mob_demob_eur": 3000000,
           "deck_capacity": 4
         }
       ],
@@ -642,7 +661,8 @@
                 "ws_max": 15,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             }
           ],
           "transit_limits": {
@@ -658,7 +678,8 @@
                 "ws_max": 12,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             },
             {
               "name": "upend & set",
@@ -668,7 +689,8 @@
                 "ws_max": 12,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             },
             {
               "name": "pile driving",
@@ -678,7 +700,8 @@
                 "ws_max": 15,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             },
             {
               "name": "jack-down",
@@ -688,7 +711,8 @@
                 "ws_max": 12,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             }
           ],
           "infield_move_h": 2
@@ -711,13 +735,15 @@
                 "ws_max": 16,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             }
           ],
           "transit_limits": {
             "hs_max": null,
             "ws_max": 15
           },
+          "rpl": "sample-demo-iac",
           "install_steps": [
             {
               "name": "pre pull-in survey",
@@ -727,7 +753,8 @@
                 "ws_max": 15,
                 "uc_max": 0.75
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             },
             {
               "name": "first end pull-in",
@@ -737,7 +764,8 @@
                 "ws_max": 15,
                 "uc_max": 0.75
               },
-              "group_with_next": true
+              "group_with_next": true,
+              "position": "start"
             },
             {
               "name": "achieve overpull & secure temporary hang-off",
@@ -747,7 +775,8 @@
                 "ws_max": 15,
                 "uc_max": null
               },
-              "group_with_next": true
+              "group_with_next": true,
+              "position": "start"
             },
             {
               "name": "freelay",
@@ -757,7 +786,9 @@
                 "ws_max": 15,
                 "uc_max": null
               },
-              "group_with_next": true
+              "group_with_next": true,
+              "position": "start",
+              "rate_m_per_h": 360
             },
             {
               "name": "cut and seal cable",
@@ -767,7 +798,8 @@
                 "ws_max": 15,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "end"
             },
             {
               "name": "second end pull-in",
@@ -777,10 +809,12 @@
                 "ws_max": 15,
                 "uc_max": 0.75
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "end"
             }
           ],
           "infield_move_h": 1.5,
+          "infield_speed_kn": 6,
           "survival_limit": {
             "hs_max": 3.5,
             "window_h": 24
@@ -804,7 +838,8 @@
                 "ws_max": 12,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             }
           ],
           "transit_limits": {
@@ -820,7 +855,8 @@
                 "ws_max": 12,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             },
             {
               "name": "tower",
@@ -830,7 +866,8 @@
                 "ws_max": 12,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             },
             {
               "name": "nacelle",
@@ -840,7 +877,8 @@
                 "ws_max": 10,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             },
             {
               "name": "blades (3x)",
@@ -850,7 +888,8 @@
                 "ws_max": 10,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             },
             {
               "name": "jack-down",
@@ -860,7 +899,8 @@
                 "ws_max": 12,
                 "uc_max": null
               },
-              "group_with_next": false
+              "group_with_next": false,
+              "position": "start"
             }
           ],
           "infield_move_h": 2
