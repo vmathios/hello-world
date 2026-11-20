@@ -1,0 +1,683 @@
+{
+  "name": "Demo OWF 900 MW",
+  "site": {
+    "lat": 54.05,
+    "lon": 6.0
+  },
+  "n_turbines": 60,
+  "n_foundations": 60,
+  "n_cables": 60,
+  "weather": "synthetic",
+  "hindcast_years": 20,
+  "percentile": 50,
+  "concepts": [
+    {
+      "name": "C1 HLV + WTIV Eemshaven",
+      "description": "Floating HLV monopiles from Rotterdam; WTGs from Eemshaven",
+      "ports": [
+        {
+          "name": "Eemshaven",
+          "location": {
+            "lat": 53.45,
+            "lon": 6.83
+          },
+          "day_rate_eur": 15000,
+          "fixed_cost_eur": 1500000
+        },
+        {
+          "name": "Rotterdam",
+          "location": {
+            "lat": 51.95,
+            "lon": 4.03
+          },
+          "day_rate_eur": 12000,
+          "fixed_cost_eur": 0
+        }
+      ],
+      "vessels": [
+        {
+          "name": "CLV-1",
+          "type": "Cable lay vessel",
+          "transit_speed_kn": 11,
+          "day_rate_eur": 130000,
+          "mob_demob_eur": 1200000,
+          "deck_capacity": 12
+        },
+        {
+          "name": "HLV-A",
+          "type": "Floating HLV (DP)",
+          "transit_speed_kn": 10,
+          "day_rate_eur": 380000,
+          "mob_demob_eur": 4000000,
+          "deck_capacity": 4
+        },
+        {
+          "name": "WTIV-1",
+          "type": "Jack-up WTIV",
+          "transit_speed_kn": 11,
+          "day_rate_eur": 290000,
+          "mob_demob_eur": 3000000,
+          "deck_capacity": 4
+        }
+      ],
+      "packages": [
+        {
+          "id": "MP",
+          "name": "Monopile installation",
+          "component": "Foundation",
+          "quantity": 60,
+          "vessel": "HLV-A",
+          "port": "Rotterdam",
+          "start_date": "2028-04-01",
+          "load_steps": [
+            {
+              "name": "load-out MP",
+              "duration_h": 6,
+              "limits": {
+                "hs_max": null,
+                "ws_max": 15
+              }
+            }
+          ],
+          "transit_limits": {
+            "hs_max": 3.0,
+            "ws_max": 18
+          },
+          "install_steps": [
+            {
+              "name": "upend & set",
+              "duration_h": 5,
+              "limits": {
+                "hs_max": 1.75,
+                "ws_max": 12
+              }
+            },
+            {
+              "name": "pile driving",
+              "duration_h": 8,
+              "limits": {
+                "hs_max": 2.0,
+                "ws_max": 15
+              }
+            },
+            {
+              "name": "noise mitigation retrieval",
+              "duration_h": 2,
+              "limits": {
+                "hs_max": 2.0,
+                "ws_max": 15
+              }
+            }
+          ],
+          "infield_move_h": 2
+        },
+        {
+          "id": "IAC",
+          "name": "Array cable installation",
+          "component": "Array cable",
+          "quantity": 60,
+          "vessel": "CLV-1",
+          "port": "Rotterdam",
+          "after": "MP",
+          "lag_days": -30,
+          "load_steps": [
+            {
+              "name": "spool cable",
+              "duration_h": 3,
+              "limits": {
+                "hs_max": null,
+                "ws_max": null
+              }
+            }
+          ],
+          "transit_limits": {
+            "hs_max": 3.0,
+            "ws_max": 18
+          },
+          "install_steps": [
+            {
+              "name": "1st end pull-in",
+              "duration_h": 8,
+              "limits": {
+                "hs_max": 1.5,
+                "ws_max": 12
+              }
+            },
+            {
+              "name": "surface lay",
+              "duration_h": 10,
+              "limits": {
+                "hs_max": 2.5,
+                "ws_max": 15
+              }
+            },
+            {
+              "name": "2nd end pull-in",
+              "duration_h": 8,
+              "limits": {
+                "hs_max": 1.5,
+                "ws_max": 12
+              }
+            }
+          ],
+          "infield_move_h": 1
+        },
+        {
+          "id": "WTG",
+          "name": "WTG installation",
+          "component": "Wind turbine",
+          "quantity": 60,
+          "vessel": "WTIV-1",
+          "port": "Eemshaven",
+          "after": "MP",
+          "lag_days": 0,
+          "load_steps": [
+            {
+              "name": "load-out WTG set",
+              "duration_h": 12,
+              "limits": {
+                "hs_max": null,
+                "ws_max": 12
+              }
+            }
+          ],
+          "transit_limits": {
+            "hs_max": 2.5,
+            "ws_max": 15
+          },
+          "install_steps": [
+            {
+              "name": "jack-up",
+              "duration_h": 4,
+              "limits": {
+                "hs_max": 1.8,
+                "ws_max": 12
+              }
+            },
+            {
+              "name": "tower",
+              "duration_h": 6,
+              "limits": {
+                "hs_max": null,
+                "ws_max": 12
+              }
+            },
+            {
+              "name": "nacelle",
+              "duration_h": 7,
+              "limits": {
+                "hs_max": null,
+                "ws_max": 10
+              }
+            },
+            {
+              "name": "blades (3x)",
+              "duration_h": 12,
+              "limits": {
+                "hs_max": null,
+                "ws_max": 10
+              }
+            },
+            {
+              "name": "jack-down",
+              "duration_h": 3,
+              "limits": {
+                "hs_max": 1.8,
+                "ws_max": 12
+              }
+            }
+          ],
+          "infield_move_h": 2
+        }
+      ]
+    },
+    {
+      "name": "C2 HLV + next-gen WTIV Esbjerg",
+      "description": "As C1 but larger WTIV loading 6 sets from Esbjerg",
+      "ports": [
+        {
+          "name": "Esbjerg",
+          "location": {
+            "lat": 55.47,
+            "lon": 8.44
+          },
+          "day_rate_eur": 18000,
+          "fixed_cost_eur": 500000
+        },
+        {
+          "name": "Rotterdam",
+          "location": {
+            "lat": 51.95,
+            "lon": 4.03
+          },
+          "day_rate_eur": 12000,
+          "fixed_cost_eur": 0
+        }
+      ],
+      "vessels": [
+        {
+          "name": "CLV-1",
+          "type": "Cable lay vessel",
+          "transit_speed_kn": 11,
+          "day_rate_eur": 130000,
+          "mob_demob_eur": 1200000,
+          "deck_capacity": 12
+        },
+        {
+          "name": "HLV-A",
+          "type": "Floating HLV (DP)",
+          "transit_speed_kn": 10,
+          "day_rate_eur": 380000,
+          "mob_demob_eur": 4000000,
+          "deck_capacity": 4
+        },
+        {
+          "name": "WTIV-2",
+          "type": "Jack-up WTIV (next-gen)",
+          "transit_speed_kn": 12,
+          "day_rate_eur": 340000,
+          "mob_demob_eur": 3500000,
+          "deck_capacity": 6
+        }
+      ],
+      "packages": [
+        {
+          "id": "MP",
+          "name": "Monopile installation",
+          "component": "Foundation",
+          "quantity": 60,
+          "vessel": "HLV-A",
+          "port": "Rotterdam",
+          "start_date": "2028-04-01",
+          "load_steps": [
+            {
+              "name": "load-out MP",
+              "duration_h": 6,
+              "limits": {
+                "hs_max": null,
+                "ws_max": 15
+              }
+            }
+          ],
+          "transit_limits": {
+            "hs_max": 3.0,
+            "ws_max": 18
+          },
+          "install_steps": [
+            {
+              "name": "upend & set",
+              "duration_h": 5,
+              "limits": {
+                "hs_max": 1.75,
+                "ws_max": 12
+              }
+            },
+            {
+              "name": "pile driving",
+              "duration_h": 8,
+              "limits": {
+                "hs_max": 2.0,
+                "ws_max": 15
+              }
+            },
+            {
+              "name": "noise mitigation retrieval",
+              "duration_h": 2,
+              "limits": {
+                "hs_max": 2.0,
+                "ws_max": 15
+              }
+            }
+          ],
+          "infield_move_h": 2
+        },
+        {
+          "id": "IAC",
+          "name": "Array cable installation",
+          "component": "Array cable",
+          "quantity": 60,
+          "vessel": "CLV-1",
+          "port": "Rotterdam",
+          "after": "MP",
+          "lag_days": -30,
+          "load_steps": [
+            {
+              "name": "spool cable",
+              "duration_h": 3,
+              "limits": {
+                "hs_max": null,
+                "ws_max": null
+              }
+            }
+          ],
+          "transit_limits": {
+            "hs_max": 3.0,
+            "ws_max": 18
+          },
+          "install_steps": [
+            {
+              "name": "1st end pull-in",
+              "duration_h": 8,
+              "limits": {
+                "hs_max": 1.5,
+                "ws_max": 12
+              }
+            },
+            {
+              "name": "surface lay",
+              "duration_h": 10,
+              "limits": {
+                "hs_max": 2.5,
+                "ws_max": 15
+              }
+            },
+            {
+              "name": "2nd end pull-in",
+              "duration_h": 8,
+              "limits": {
+                "hs_max": 1.5,
+                "ws_max": 12
+              }
+            }
+          ],
+          "infield_move_h": 1
+        },
+        {
+          "id": "WTG",
+          "name": "WTG installation",
+          "component": "Wind turbine",
+          "quantity": 60,
+          "vessel": "WTIV-2",
+          "port": "Esbjerg",
+          "after": "MP",
+          "lag_days": 0,
+          "load_steps": [
+            {
+              "name": "load-out WTG set",
+              "duration_h": 12,
+              "limits": {
+                "hs_max": null,
+                "ws_max": 12
+              }
+            }
+          ],
+          "transit_limits": {
+            "hs_max": 2.5,
+            "ws_max": 15
+          },
+          "install_steps": [
+            {
+              "name": "jack-up",
+              "duration_h": 4,
+              "limits": {
+                "hs_max": 1.8,
+                "ws_max": 12
+              }
+            },
+            {
+              "name": "tower",
+              "duration_h": 6,
+              "limits": {
+                "hs_max": null,
+                "ws_max": 12
+              }
+            },
+            {
+              "name": "nacelle",
+              "duration_h": 7,
+              "limits": {
+                "hs_max": null,
+                "ws_max": 10
+              }
+            },
+            {
+              "name": "blades (3x)",
+              "duration_h": 12,
+              "limits": {
+                "hs_max": null,
+                "ws_max": 10
+              }
+            },
+            {
+              "name": "jack-down",
+              "duration_h": 3,
+              "limits": {
+                "hs_max": 1.8,
+                "ws_max": 12
+              }
+            }
+          ],
+          "infield_move_h": 2
+        }
+      ]
+    },
+    {
+      "name": "C3 Jack-up foundations",
+      "description": "Monopiles by jack-up from Eemshaven; WTGs from Eemshaven",
+      "ports": [
+        {
+          "name": "Eemshaven",
+          "location": {
+            "lat": 53.45,
+            "lon": 6.83
+          },
+          "day_rate_eur": 15000,
+          "fixed_cost_eur": 1500000
+        },
+        {
+          "name": "Rotterdam",
+          "location": {
+            "lat": 51.95,
+            "lon": 4.03
+          },
+          "day_rate_eur": 12000,
+          "fixed_cost_eur": 0
+        }
+      ],
+      "vessels": [
+        {
+          "name": "CLV-1",
+          "type": "Cable lay vessel",
+          "transit_speed_kn": 11,
+          "day_rate_eur": 130000,
+          "mob_demob_eur": 1200000,
+          "deck_capacity": 12
+        },
+        {
+          "name": "JUV-M",
+          "type": "Jack-up (foundations)",
+          "transit_speed_kn": 9,
+          "day_rate_eur": 230000,
+          "mob_demob_eur": 2500000,
+          "deck_capacity": 3
+        },
+        {
+          "name": "WTIV-1",
+          "type": "Jack-up WTIV",
+          "transit_speed_kn": 11,
+          "day_rate_eur": 290000,
+          "mob_demob_eur": 3000000,
+          "deck_capacity": 4
+        }
+      ],
+      "packages": [
+        {
+          "id": "MP",
+          "name": "Monopile installation",
+          "component": "Foundation",
+          "quantity": 60,
+          "vessel": "JUV-M",
+          "port": "Eemshaven",
+          "start_date": "2028-04-01",
+          "load_steps": [
+            {
+              "name": "load-out MP",
+              "duration_h": 6,
+              "limits": {
+                "hs_max": null,
+                "ws_max": 15
+              }
+            }
+          ],
+          "transit_limits": {
+            "hs_max": 3.0,
+            "ws_max": 18
+          },
+          "install_steps": [
+            {
+              "name": "jack-up",
+              "duration_h": 4,
+              "limits": {
+                "hs_max": 1.8,
+                "ws_max": 12
+              }
+            },
+            {
+              "name": "upend & set",
+              "duration_h": 5,
+              "limits": {
+                "hs_max": null,
+                "ws_max": 12
+              }
+            },
+            {
+              "name": "pile driving",
+              "duration_h": 8,
+              "limits": {
+                "hs_max": null,
+                "ws_max": 15
+              }
+            },
+            {
+              "name": "jack-down",
+              "duration_h": 3,
+              "limits": {
+                "hs_max": 1.8,
+                "ws_max": 12
+              }
+            }
+          ],
+          "infield_move_h": 2
+        },
+        {
+          "id": "IAC",
+          "name": "Array cable installation",
+          "component": "Array cable",
+          "quantity": 60,
+          "vessel": "CLV-1",
+          "port": "Rotterdam",
+          "after": "MP",
+          "lag_days": -30,
+          "load_steps": [
+            {
+              "name": "spool cable",
+              "duration_h": 3,
+              "limits": {
+                "hs_max": null,
+                "ws_max": null
+              }
+            }
+          ],
+          "transit_limits": {
+            "hs_max": 3.0,
+            "ws_max": 18
+          },
+          "install_steps": [
+            {
+              "name": "1st end pull-in",
+              "duration_h": 8,
+              "limits": {
+                "hs_max": 1.5,
+                "ws_max": 12
+              }
+            },
+            {
+              "name": "surface lay",
+              "duration_h": 10,
+              "limits": {
+                "hs_max": 2.5,
+                "ws_max": 15
+              }
+            },
+            {
+              "name": "2nd end pull-in",
+              "duration_h": 8,
+              "limits": {
+                "hs_max": 1.5,
+                "ws_max": 12
+              }
+            }
+          ],
+          "infield_move_h": 1
+        },
+        {
+          "id": "WTG",
+          "name": "WTG installation",
+          "component": "Wind turbine",
+          "quantity": 60,
+          "vessel": "WTIV-1",
+          "port": "Eemshaven",
+          "after": "MP",
+          "lag_days": 0,
+          "load_steps": [
+            {
+              "name": "load-out WTG set",
+              "duration_h": 12,
+              "limits": {
+                "hs_max": null,
+                "ws_max": 12
+              }
+            }
+          ],
+          "transit_limits": {
+            "hs_max": 2.5,
+            "ws_max": 15
+          },
+          "install_steps": [
+            {
+              "name": "jack-up",
+              "duration_h": 4,
+              "limits": {
+                "hs_max": 1.8,
+                "ws_max": 12
+              }
+            },
+            {
+              "name": "tower",
+              "duration_h": 6,
+              "limits": {
+                "hs_max": null,
+                "ws_max": 12
+              }
+            },
+            {
+              "name": "nacelle",
+              "duration_h": 7,
+              "limits": {
+                "hs_max": null,
+                "ws_max": 10
+              }
+            },
+            {
+              "name": "blades (3x)",
+              "duration_h": 12,
+              "limits": {
+                "hs_max": null,
+                "ws_max": 10
+              }
+            },
+            {
+              "name": "jack-down",
+              "duration_h": 3,
+              "limits": {
+                "hs_max": 1.8,
+                "ws_max": 12
+              }
+            }
+          ],
+          "infield_move_h": 2
+        }
+      ]
+    }
+  ]
+}

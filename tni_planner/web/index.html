@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>T&amp;I Concept Planner</title>
+<style>
+:root {
+  color-scheme: light;
+  --bg: #f4f3ef; --surface-1: #fcfcfb; --border: #e1e0d9; --grid: #e1e0d9;
+  --text-primary: #0b0b0b; --text-secondary: #52514e; --text-muted: #6f6e69;
+  --accent: #2a78d6; --danger: #c42b2b;
+  --series-1: #2a78d6; --series-2: #eb6834; --series-3: #1baf7a; --series-4: #eda100;
+  --series-5: #e87ba4; --series-6: #008300;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #111110; --surface-1: #1a1a19; --border: #2c2c2a; --grid: #2c2c2a;
+    --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #9a998f;
+    --accent: #3987e5; --danger: #e66767;
+    --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; --series-4: #c98500;
+    --series-5: #d55181; --series-6: #0ca30c;
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #111110; --surface-1: #1a1a19; --border: #2c2c2a; --grid: #2c2c2a;
+  --text-primary: #f0efec; --text-secondary: #c3c2b7; --text-muted: #9a998f;
+  --accent: #3987e5; --danger: #e66767;
+  --series-1: #3987e5; --series-2: #d95926; --series-3: #199e70; --series-4: #c98500;
+  --series-5: #d55181; --series-6: #0ca30c;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text-primary);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif; }
+header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--surface-1); }
+header h1 { font-size: 16px; margin: 0 auto 0 0; }
+button, label.btn { font: inherit; padding: 6px 12px; border-radius: 6px; cursor: pointer;
+  border: 1px solid var(--border); background: var(--surface-1); color: var(--text-primary); }
+button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+button:disabled { opacity: .5; cursor: default; }
+main { display: grid; grid-template-columns: minmax(300px, 420px) 1fr; gap: 16px; padding: 16px; }
+@media (max-width: 900px) { main { grid-template-columns: 1fr; } }
+.card { background: var(--surface-1); border: 1px solid var(--border); border-radius: 10px; padding: 16px; min-width: 0; }
+.card h2 { font-size: 14px; margin: 0 0 4px; }
+.card .sub { color: var(--text-secondary); font-size: 12px; margin: 0 0 12px; }
+textarea { width: 100%; height: calc(100vh - 220px); min-height: 300px; resize: vertical;
+  font: 12px/1.4 ui-monospace, Menlo, Consolas, monospace; color: var(--text-primary);
+  background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 8px; }
+#results { display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+.tile { border: 1px solid var(--border); border-radius: 8px; padding: 12px; }
+.tile .name { font-weight: 600; font-size: 13px; }
+.tile .desc { color: var(--text-muted); font-size: 12px; margin-bottom: 8px; }
+.tile .kv { display: flex; justify-content: space-between; font-size: 13px; }
+.tile .kv span:first-child { color: var(--text-secondary); }
+.tile .best { font-size: 11px; color: var(--text-secondary); border: 1px solid var(--border); border-radius: 4px; padding: 0 4px; margin-left: 4px; }
+.legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--text-secondary); margin-bottom: 8px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+.legend .whisk { width: 16px; height: 2px; background: var(--text-secondary); border-radius: 0; vertical-align: 3px; }
+.chart { width: 100%; overflow-x: auto; }
+svg text { fill: var(--text-secondary); font-size: 11px; }
+svg .lbl { fill: var(--text-primary); font-size: 12px; }
+svg .grp { fill: var(--text-primary); font-size: 12px; font-weight: 600; }
+table { border-collapse: collapse; width: 100%; font-size: 12px; }
+th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+th { color: var(--text-secondary); font-weight: 600; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.tablewrap { overflow-x: auto; }
+#tip { position: fixed; pointer-events: none; background: var(--surface-1); color: var(--text-primary);
+  border: 1px solid var(--border); border-radius: 6px; padding: 8px 10px; font-size: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,.15); display: none; z-index: 10; max-width: 320px; }
+#tip b { display: block; margin-bottom: 2px; }
+#msg { color: var(--danger); font-size: 13px; white-space: pre-wrap; }
+.empty { color: var(--text-muted); padding: 40px 0; text-align: center; }
+</style>
+</head>
+<body>
+<header>
+  <h1>T&amp;I Concept Planner</h1>
+  <button id="sample">Load sample</button>
+  <label class="btn">Upload hindcast CSV<input id="csv" type="file" accept=".csv" hidden></label>
+  <button id="export" disabled>Export schedule CSV</button>
+  <button id="run" class="primary">Run concepts</button>
+</header>
+<main>
+  <section class="card">
+    <h2>Project &amp; concepts</h2>
+    <p class="sub">Site, ports, vessels and work packages (JSON). Weather: <code>synthetic</code>, <code>csv:&lt;path&gt;</code> or <code>external</code>.</p>
+    <textarea id="editor" spellcheck="false"></textarea>
+    <div id="msg"></div>
+  </section>
+  <section id="results">
+    <div class="card"><div class="empty">Load the sample or paste a project, then click <b>Run concepts</b>.</div></div>
+  </section>
+</main>
+<div id="tip"></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const editor = $('#editor'), msg = $('#msg'), tip = $('#tip');
+let last = null;
+const DAY = 86400000;
+const fmtEUR = v => '€' + (v / 1e6).toFixed(1) + 'M';
+const fmtDate = d => new Date(d).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+function showTip(e, html) { tip.innerHTML = html; tip.style.display = 'block'; moveTip(e); }
+function moveTip(e) {
+  const r = tip.getBoundingClientRect();
+  let x = e.clientX + 14, y = e.clientY + 14;
+  if (x + r.width > innerWidth - 8) x = e.clientX - r.width - 14;
+  if (y + r.height > innerHeight - 8) y = e.clientY - r.height - 14;
+  tip.style.left = x + 'px'; tip.style.top = y + 'px';
+}
+function hideTip() { tip.style.display = 'none'; }
+
+async function loadSample() {
+  const r = await fetch('/api/sample');
+  editor.value = JSON.stringify(await r.json(), null, 2);
+}
+
+async function run() {
+  msg.textContent = '';
+  let body;
+  try { body = JSON.parse(editor.value); } catch (e) { msg.textContent = 'Invalid JSON: ' + e.message; return; }
+  $('#run').disabled = true; $('#run').textContent = 'Running…';
+  try {
+    const r = await fetch('/api/run', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const data = await r.json();
+    if (!r.ok) {
+      msg.textContent = typeof data.detail === 'string' ? data.detail
+        : data.detail.map(d => d.loc.join('.') + ': ' + d.msg).join('\n');
+      return;
+    }
+    last = data; render(data); $('#export').disabled = false;
+  } catch (e) { msg.textContent = String(e); }
+  finally { $('#run').disabled = false; $('#run').textContent = 'Run concepts'; }
+}
+
+function render(data) {
+  // Component colors: fixed order of first appearance, stable across concepts.
+  const comps = [];
+  data.concepts.forEach(c => c.packages.forEach(p => { if (!comps.includes(p.component)) comps.push(p.component); }));
+  const compColor = c => `var(--series-${Math.min(comps.indexOf(c) + 1, 6)})`;
+  const bestCost = Math.min(...data.concepts.map(c => c.total_cost_eur));
+  const bestEnd = data.concepts.map(c => c.p50_end).sort()[0];
+
+  const tiles = data.concepts.map(c => `
+    <div class="tile">
+      <div class="name">${esc(c.name)}</div>
+      <div class="desc">${esc(c.description)}</div>
+      <div class="kv"><span>P${data.percentile} completion</span><span>${fmtDate(c.p50_end)}${c.p50_end === bestEnd ? '<span class="best">earliest</span>' : ''}</span></div>
+      <div class="kv"><span>Campaign duration</span><span>${c.p50_total_days} d</span></div>
+      <div class="kv"><span>T&amp;I cost</span><span>${fmtEUR(c.total_cost_eur)}${c.total_cost_eur === bestCost ? '<span class="best">lowest</span>' : ''}</span></div>
+    </div>`).join('');
+
+  $('#results').innerHTML = `
+    <div class="card"><h2>Concept summary</h2>
+      <p class="sub">Weather: ${esc(data.weather_provider)} · P${data.percentile} durations chained per work package</p>
+      <div class="tiles">${tiles}</div></div>
+    <div class="card"><h2>P${data.percentile} construction schedule</h2>
+      <p class="sub">Bar = start to P${data.percentile} finish; whisker = P10–P90 finish range</p>
+      <div class="legend">${comps.map(c => `<span><i style="background:${compColor(c)}"></i>${esc(c)}</span>`).join('')}
+        <span><i class="whisk"></i>P10–P90</span></div>
+      <div class="chart" id="gantt"></div></div>
+    <div class="card"><h2>T&amp;I cost comparison</h2>
+      <p class="sub">P${data.percentile} durations × day rates, plus mobilisation, port and other costs</p>
+      <div class="legend" id="costLegend"></div>
+      <div class="chart" id="cost"></div></div>
+    <div class="card"><h2>Work package detail</h2>
+      <div class="tablewrap" id="table"></div></div>`;
+
+  drawGantt(data, compColor);
+  drawCost(data);
+  drawTable(data);
+}
+
+function drawGantt(data, compColor) {
+  const host = $('#gantt');
+  const W = Math.max(host.clientWidth, 720), labelW = 210, padR = 24, rowH = 26, grpH = 28, axisH = 24;
+  const pkgs = data.concepts.flatMap(c => c.packages.map(p => {
+    const s = new Date(p.start).getTime();
+    return { ...p, concept: c.name, s, e: new Date(p.p50_end).getTime(),
+      e10: s + p.p10_days * DAY, e90: s + p.p90_days * DAY };
+  }));
+  const t0 = Math.min(...pkgs.map(p => p.s)), t1 = Math.max(...pkgs.map(p => Math.max(p.e, p.e90)));
+  const pad = (t1 - t0) * 0.02;
+  const x = t => labelW + (t - (t0 - pad)) / ((t1 + pad) - (t0 - pad)) * (W - labelW - padR);
+  const H = axisH + data.concepts.reduce((a, c) => a + grpH + c.packages.length * rowH, 0) + 8;
+
+  let g = '';
+  // month grid
+  const d = new Date(t0 - pad); d.setUTCDate(1); d.setUTCHours(0, 0, 0, 0);
+  for (; d.getTime() <= t1 + pad; d.setUTCMonth(d.getUTCMonth() + 1)) {
+    const xx = x(d.getTime());
+    if (xx < labelW) continue;
+    g += `<line x1="${xx}" x2="${xx}" y1="${axisH - 4}" y2="${H}" stroke="var(--grid)" stroke-width="1"/>`;
+    g += `<text x="${xx + 4}" y="14">${d.toLocaleDateString('en-GB', { month: 'short' })}${d.getUTCMonth() === 0 ? ' ' + d.getUTCFullYear() : ''}</text>`;
+  }
+  let y = axisH;
+  data.concepts.forEach(c => {
+    g += `<text class="grp" x="0" y="${y + 18}">${esc(c.name)}</text>`;
+    g += `<line x1="0" x2="${W - padR}" y1="${y + grpH - 2}" y2="${y + grpH - 2}" stroke="var(--grid)"/>`;
+    y += grpH;
+    c.packages.forEach(p0 => {
+      const p = pkgs.find(q => q.concept === c.name && q.id === p0.id);
+      const cy = y + rowH / 2, bh = 14;
+      g += `<text class="lbl" x="12" y="${cy + 4}">${esc(p.name)}</text>`;
+      const xs = x(p.s), xe = x(p.e);
+      g += `<line x1="${x(p.e10)}" x2="${x(p.e90)}" y1="${cy}" y2="${cy}" stroke="var(--text-secondary)" stroke-width="2"/>`;
+      g += `<line x1="${x(p.e90)}" x2="${x(p.e90)}" y1="${cy - 4}" y2="${cy + 4}" stroke="var(--text-secondary)" stroke-width="2"/>`;
+      g += `<line x1="${x(p.e10)}" x2="${x(p.e10)}" y1="${cy - 4}" y2="${cy + 4}" stroke="var(--text-secondary)" stroke-width="2"/>`;
+      g += `<rect x="${xs}" y="${cy - bh / 2}" width="${Math.max(2, xe - xs)}" height="${bh}" rx="4" fill="${compColor(p.component)}" stroke="var(--surface-1)" stroke-width="2"/>`;
+      g += `<rect class="hit" data-k="${esc(c.name)}|${esc(p.id)}" x="${labelW}" y="${y}" width="${W - labelW}" height="${rowH}" fill="transparent"/>`;
+      y += rowH;
+    });
+  });
+  host.innerHTML = `<svg width="${W}" height="${H}" role="img" aria-label="Gantt chart of P50 schedule per concept">${g}</svg>`;
+  host.querySelectorAll('.hit').forEach(el => {
+    const [cn, id] = el.dataset.k.split('|');
+    const p = pkgs.find(q => q.concept === cn && q.id === id);
+    const html = `<b>${esc(p.name)}</b>${esc(cn)}<br>${esc(p.vessel)} from ${esc(p.port)} · ${p.quantity} units, ${p.trips} trips<br>
+      Start ${fmtDate(p.s)} → P50 finish ${fmtDate(p.e)}<br>P10 / P50 / P90: ${p.p10_days} / ${p.p50_days} / ${p.p90_days} d<br>
+      Net (no weather) ${p.net_duration_days} d · downtime ${p.weather_downtime_pct}%`;
+    el.addEventListener('mouseenter', e => showTip(e, html));
+    el.addEventListener('mousemove', moveTip);
+    el.addEventListener('mouseleave', hideTip);
+  });
+}
+
+function drawCost(data) {
+  const cats = Object.keys(data.concepts[0].cost_breakdown_eur);
+  const col = i => `var(--series-${i + 1})`;
+  $('#costLegend').innerHTML = cats.map((c, i) => `<span><i style="background:${col(i)}"></i>${esc(c)}</span>`).join('');
+  const host = $('#cost');
+  const W = Math.max(host.clientWidth, 560), labelW = 210, padR = 80, rowH = 34, axisH = 22;
+  const max = Math.max(...data.concepts.map(c => c.total_cost_eur));
+  const step = [5e6, 10e6, 20e6, 25e6, 50e6, 100e6].find(s => max / s <= 6) || 200e6;
+  const top = Math.ceil(max / step) * step;
+  const x = v => labelW + v / top * (W - labelW - padR);
+  const H = axisH + data.concepts.length * rowH + 4;
+  let g = '';
+  for (let v = 0; v <= top; v += step) {
+    g += `<line x1="${x(v)}" x2="${x(v)}" y1="${axisH - 4}" y2="${H}" stroke="var(--grid)"/>`;
+    g += `<text x="${x(v)}" y="12" text-anchor="middle">${v / 1e6}M</text>`;
+  }
+  data.concepts.forEach((c, r) => {
+    const y = axisH + r * rowH, bh = 18, cy = y + rowH / 2;
+    g += `<text class="lbl" x="0" y="${cy + 4}">${esc(c.name)}</text>`;
+    let acc = 0;
+    const nz = cats.filter(k => c.cost_breakdown_eur[k] > 0);
+    cats.forEach((k, i) => {
+      const v = c.cost_breakdown_eur[k]; if (v <= 0) return;
+      const isLast = k === nz[nz.length - 1];
+      const x0 = x(acc), w = x(acc + v) - x0;
+      // round only the data-end; 2px surface gap between segments
+      const path = isLast
+        ? `M${x0},${cy - bh/2} h${Math.max(0, w - 4)} a4,4 0 0 1 4,4 v${bh - 8} a4,4 0 0 1 -4,4 h${-Math.max(0, w - 4)} z`
+        : `M${x0},${cy - bh/2} h${w} v${bh} h${-w} z`;
+      g += `<path d="${path}" fill="${col(i)}" stroke="var(--surface-1)" stroke-width="2" data-t="${esc(c.name)}|${esc(k)}|${v}"/>`;
+      acc += v;
+    });
+    g += `<text class="lbl" x="${x(acc) + 6}" y="${cy + 4}">${fmtEUR(c.total_cost_eur)}</text>`;
+  });
+  host.innerHTML = `<svg width="${W}" height="${H}" role="img" aria-label="Stacked cost comparison per concept">${g}</svg>`;
+  host.querySelectorAll('path[data-t]').forEach(el => {
+    const [cn, k, v] = el.dataset.t.split('|');
+    const tot = data.concepts.find(c => c.name === cn).total_cost_eur;
+    const html = `<b>${esc(k)}</b>${esc(cn)}<br>${fmtEUR(+v)} (${(100 * v / tot).toFixed(0)}% of total)`;
+    el.addEventListener('mouseenter', e => showTip(e, html));
+    el.addEventListener('mousemove', moveTip);
+    el.addEventListener('mouseleave', hideTip);
+  });
+}
+
+function drawTable(data) {
+  const rows = data.concepts.flatMap(c => c.packages.map(p => `<tr>
+    <td>${esc(c.name)}</td><td>${esc(p.name)}</td><td>${esc(p.vessel)}</td><td>${esc(p.port)}</td>
+    <td class="num">${p.quantity}</td><td class="num">${p.trips}</td><td class="num">${p.transit_nm}</td>
+    <td>${p.start}</td><td>${p.p50_end}</td><td class="num">${p.net_duration_days}</td>
+    <td class="num">${p.p10_days}</td><td class="num">${p.p50_days}</td><td class="num">${p.p90_days}</td>
+    <td class="num">${p.weather_downtime_pct}%</td>
+    <td class="num">${fmtEUR(Object.values(p.cost_eur).reduce((a, b) => a + b, 0))}</td></tr>`)).join('');
+  $('#table').innerHTML = `<table><thead><tr><th>Concept</th><th>Package</th><th>Vessel</th><th>Port</th>
+    <th class="num">Qty</th><th class="num">Trips</th><th class="num">Transit nm</th><th>Start</th><th>P50 finish</th>
+    <th class="num">Net d</th><th class="num">P10 d</th><th class="num">P50 d</th><th class="num">P90 d</th>
+    <th class="num">Downtime</th><th class="num">Cost</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+
+function exportCSV() {
+  if (!last) return;
+  const head = ['concept','package','component','vessel','port','quantity','trips','transit_nm','start','p50_end',
+    'net_days','p10_days','p50_days','p90_days','downtime_pct','vessel_eur','mob_eur','port_eur','other_eur'];
+  const q = v => /[",\n]/.test(String(v)) ? `"${String(v).replace(/"/g, '""')}"` : v;
+  const lines = [head.join(',')].concat(last.concepts.flatMap(c => c.packages.map(p => [c.name, p.name, p.component,
+    p.vessel, p.port, p.quantity, p.trips, p.transit_nm, p.start, p.p50_end, p.net_duration_days, p.p10_days,
+    p.p50_days, p.p90_days, p.weather_downtime_pct, ...Object.values(p.cost_eur)].map(q).join(','))));
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([lines.join('\n')], { type: 'text/csv' }));
+  a.download = (last.project || 'schedule').replace(/\W+/g, '_') + '_schedule.csv';
+  a.click();
+}
+
+$('#sample').onclick = loadSample;
+$('#run').onclick = run;
+$('#export').onclick = exportCSV;
+$('#csv').onchange = async e => {
+  const f = e.target.files[0]; if (!f) return;
+  const fd = new FormData(); fd.append('file', f);
+  const r = await fetch('/api/hindcast', { method: 'POST', body: fd });
+  const d = await r.json();
+  if (!r.ok) { msg.textContent = d.detail; return; }
+  try { const j = JSON.parse(editor.value); j.weather = d.weather; editor.value = JSON.stringify(j, null, 2); }
+  catch { msg.textContent = 'Uploaded. Set "weather": "' + d.weather + '"'; }
+};
+addEventListener('resize', () => last && render(last));
+loadSample().then(run);
+</script>
+</body>
+</html>

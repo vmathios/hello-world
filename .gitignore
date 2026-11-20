@@ -1,0 +1,3 @@
+__pycache__/
+.pytest_cache/
+tni_planner/data/hindcasts/
