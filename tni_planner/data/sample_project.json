@@ -75,8 +75,10 @@
               "duration_h": 6,
               "limits": {
                 "hs_max": null,
-                "ws_max": 15
-              }
+                "ws_max": 15,
+                "uc_max": null
+              },
+              "group_with_next": false
             }
           ],
           "transit_limits": {
@@ -89,24 +91,30 @@
               "duration_h": 5,
               "limits": {
                 "hs_max": 1.75,
-                "ws_max": 12
-              }
+                "ws_max": 12,
+                "uc_max": null
+              },
+              "group_with_next": false
             },
             {
               "name": "pile driving",
               "duration_h": 8,
               "limits": {
                 "hs_max": 2.0,
-                "ws_max": 15
-              }
+                "ws_max": 15,
+                "uc_max": null
+              },
+              "group_with_next": false
             },
             {
               "name": "noise mitigation retrieval",
               "duration_h": 2,
               "limits": {
                 "hs_max": 2.0,
-                "ws_max": 15
-              }
+                "ws_max": 15,
+                "uc_max": null
+              },
+              "group_with_next": false
             }
           ],
           "infield_move_h": 2
@@ -122,45 +130,87 @@
           "lag_days": -30,
           "load_steps": [
             {
-              "name": "spool cable",
-              "duration_h": 3,
+              "name": "cable load-out (per section)",
+              "duration_h": 6,
               "limits": {
                 "hs_max": null,
-                "ws_max": null
-              }
+                "ws_max": 16,
+                "uc_max": null
+              },
+              "group_with_next": false
             }
           ],
           "transit_limits": {
-            "hs_max": 3.0,
-            "ws_max": 18
+            "hs_max": null,
+            "ws_max": 15
           },
           "install_steps": [
             {
-              "name": "1st end pull-in",
-              "duration_h": 8,
-              "limits": {
-                "hs_max": 1.5,
-                "ws_max": 12
-              }
-            },
-            {
-              "name": "surface lay",
-              "duration_h": 10,
+              "name": "pre pull-in survey",
+              "duration_h": 2,
               "limits": {
                 "hs_max": 2.5,
-                "ws_max": 15
-              }
+                "ws_max": 15,
+                "uc_max": 0.75
+              },
+              "group_with_next": false
             },
             {
-              "name": "2nd end pull-in",
-              "duration_h": 8,
+              "name": "first end pull-in",
+              "duration_h": 2,
               "limits": {
-                "hs_max": 1.5,
-                "ws_max": 12
-              }
+                "hs_max": 2.0,
+                "ws_max": 15,
+                "uc_max": 0.75
+              },
+              "group_with_next": true
+            },
+            {
+              "name": "achieve overpull & secure temporary hang-off",
+              "duration_h": 0.5,
+              "limits": {
+                "hs_max": 2.0,
+                "ws_max": 15,
+                "uc_max": null
+              },
+              "group_with_next": true
+            },
+            {
+              "name": "freelay",
+              "duration_h": 7.7,
+              "limits": {
+                "hs_max": 2.5,
+                "ws_max": 15,
+                "uc_max": null
+              },
+              "group_with_next": true
+            },
+            {
+              "name": "cut and seal cable",
+              "duration_h": 4,
+              "limits": {
+                "hs_max": 2.5,
+                "ws_max": 15,
+                "uc_max": null
+              },
+              "group_with_next": false
+            },
+            {
+              "name": "second end pull-in",
+              "duration_h": 4,
+              "limits": {
+                "hs_max": 2.0,
+                "ws_max": 15,
+                "uc_max": 0.75
+              },
+              "group_with_next": false
             }
           ],
-          "infield_move_h": 1
+          "infield_move_h": 1.5,
+          "survival_limit": {
+            "hs_max": 3.5,
+            "window_h": 24
+          }
         },
         {
           "id": "WTG",
@@ -177,8 +227,10 @@
               "duration_h": 12,
               "limits": {
                 "hs_max": null,
-                "ws_max": 12
-              }
+                "ws_max": 12,
+                "uc_max": null
+              },
+              "group_with_next": false
             }
           ],
           "transit_limits": {
@@ -191,40 +243,50 @@
               "duration_h": 4,
               "limits": {
                 "hs_max": 1.8,
-                "ws_max": 12
-              }
+                "ws_max": 12,
+                "uc_max": null
+              },
+              "group_with_next": false
             },
             {
               "name": "tower",
               "duration_h": 6,
               "limits": {
                 "hs_max": null,
-                "ws_max": 12
-              }
+                "ws_max": 12,
+                "uc_max": null
+              },
+              "group_with_next": false
             },
             {
               "name": "nacelle",
               "duration_h": 7,
               "limits": {
                 "hs_max": null,
-                "ws_max": 10
-              }
+                "ws_max": 10,
+                "uc_max": null
+              },
+              "group_with_next": false
             },
             {
               "name": "blades (3x)",
               "duration_h": 12,
               "limits": {
                 "hs_max": null,
-                "ws_max": 10
-              }
+                "ws_max": 10,
+                "uc_max": null
+              },
+              "group_with_next": false
             },
             {
               "name": "jack-down",
               "duration_h": 3,
               "limits": {
                 "hs_max": 1.8,
-                "ws_max": 12
-              }
+                "ws_max": 12,
+                "uc_max": null
+              },
+              "group_with_next": false
             }
           ],
           "infield_move_h": 2
@@ -295,8 +357,10 @@
               "duration_h": 6,
               "limits": {
                 "hs_max": null,
-                "ws_max": 15
-              }
+                "ws_max": 15,
+                "uc_max": null
+              },
+              "group_with_next": false
             }
           ],
           "transit_limits": {
@@ -309,24 +373,30 @@
               "duration_h": 5,
               "limits": {
                 "hs_max": 1.75,
-                "ws_max": 12
-              }
+                "ws_max": 12,
+                "uc_max": null
+              },
+              "group_with_next": false
             },
             {
               "name": "pile driving",
               "duration_h": 8,
               "limits": {
                 "hs_max": 2.0,
-                "ws_max": 15
-              }
+                "ws_max": 15,
+                "uc_max": null
+              },
+              "group_with_next": false
             },
             {
               "name": "noise mitigation retrieval",
               "duration_h": 2,
               "limits": {
                 "hs_max": 2.0,
-                "ws_max": 15
-              }
+                "ws_max": 15,
+                "uc_max": null
+              },
+              "group_with_next": false
             }
           ],
           "infield_move_h": 2
@@ -342,45 +412,87 @@
           "lag_days": -30,
           "load_steps": [
             {
-              "name": "spool cable",
-              "duration_h": 3,
+              "name": "cable load-out (per section)",
+              "duration_h": 6,
               "limits": {
                 "hs_max": null,
-                "ws_max": null
-              }
+                "ws_max": 16,
+                "uc_max": null
+              },
+              "group_with_next": false
             }
           ],
           "transit_limits": {
-            "hs_max": 3.0,
-            "ws_max": 18
+            "hs_max": null,
+            "ws_max": 15
           },
           "install_steps": [
             {
-              "name": "1st end pull-in",
-              "duration_h": 8,
-              "limits": {
-                "hs_max": 1.5,
-                "ws_max": 12
-              }
-            },
-            {
-              "name": "surface lay",
-              "duration_h": 10,
+              "name": "pre pull-in survey",
+              "duration_h": 2,
               "limits": {
                 "hs_max": 2.5,
-                "ws_max": 15
-              }
+                "ws_max": 15,
+                "uc_max": 0.75
+              },
+              "group_with_next": false
             },
             {
-              "name": "2nd end pull-in",
-              "duration_h": 8,
+              "name": "first end pull-in",
+              "duration_h": 2,
               "limits": {
-                "hs_max": 1.5,
-                "ws_max": 12
-              }
+                "hs_max": 2.0,
+                "ws_max": 15,
+                "uc_max": 0.75
+              },
+              "group_with_next": true
+            },
+            {
+              "name": "achieve overpull & secure temporary hang-off",
+              "duration_h": 0.5,
+              "limits": {
+                "hs_max": 2.0,
+                "ws_max": 15,
+                "uc_max": null
+              },
+              "group_with_next": true
+            },
+            {
+              "name": "freelay",
+              "duration_h": 7.7,
+              "limits": {
+                "hs_max": 2.5,
+                "ws_max": 15,
+                "uc_max": null
+              },
+              "group_with_next": true
+            },
+            {
+              "name": "cut and seal cable",
+              "duration_h": 4,
+              "limits": {
+                "hs_max": 2.5,
+                "ws_max": 15,
+                "uc_max": null
+              },
+              "group_with_next": false
+            },
+            {
+              "name": "second end pull-in",
+              "duration_h": 4,
+              "limits": {
+                "hs_max": 2.0,
+                "ws_max": 15,
+                "uc_max": 0.75
+              },
+              "group_with_next": false
             }
           ],
-          "infield_move_h": 1
+          "infield_move_h": 1.5,
+          "survival_limit": {
+            "hs_max": 3.5,
+            "window_h": 24
+          }
         },
         {
           "id": "WTG",
@@ -397,8 +509,10 @@
               "duration_h": 12,
               "limits": {
                 "hs_max": null,
-                "ws_max": 12
-              }
+                "ws_max": 12,
+                "uc_max": null
+              },
+              "group_with_next": false
             }
           ],
           "transit_limits": {
@@ -411,40 +525,50 @@
               "duration_h": 4,
               "limits": {
                 "hs_max": 1.8,
-                "ws_max": 12
-              }
+                "ws_max": 12,
+                "uc_max": null
+              },
+              "group_with_next": false
             },
             {
               "name": "tower",
               "duration_h": 6,
               "limits": {
                 "hs_max": null,
-                "ws_max": 12
-              }
+                "ws_max": 12,
+                "uc_max": null
+              },
+              "group_with_next": false
             },
             {
               "name": "nacelle",
               "duration_h": 7,
               "limits": {
                 "hs_max": null,
-                "ws_max": 10
-              }
+                "ws_max": 10,
+                "uc_max": null
+              },
+              "group_with_next": false
             },
             {
               "name": "blades (3x)",
               "duration_h": 12,
               "limits": {
                 "hs_max": null,
-                "ws_max": 10
-              }
+                "ws_max": 10,
+                "uc_max": null
+              },
+              "group_with_next": false
             },
             {
               "name": "jack-down",
               "duration_h": 3,
               "limits": {
                 "hs_max": 1.8,
-                "ws_max": 12
-              }
+                "ws_max": 12,
+                "uc_max": null
+              },
+              "group_with_next": false
             }
           ],
           "infield_move_h": 2
@@ -515,8 +639,10 @@
               "duration_h": 6,
               "limits": {
                 "hs_max": null,
-                "ws_max": 15
-              }
+                "ws_max": 15,
+                "uc_max": null
+              },
+              "group_with_next": false
             }
           ],
           "transit_limits": {
@@ -529,32 +655,40 @@
               "duration_h": 4,
               "limits": {
                 "hs_max": 1.8,
-                "ws_max": 12
-              }
+                "ws_max": 12,
+                "uc_max": null
+              },
+              "group_with_next": false
             },
             {
               "name": "upend & set",
               "duration_h": 5,
               "limits": {
                 "hs_max": null,
-                "ws_max": 12
-              }
+                "ws_max": 12,
+                "uc_max": null
+              },
+              "group_with_next": false
             },
             {
               "name": "pile driving",
               "duration_h": 8,
               "limits": {
                 "hs_max": null,
-                "ws_max": 15
-              }
+                "ws_max": 15,
+                "uc_max": null
+              },
+              "group_with_next": false
             },
             {
               "name": "jack-down",
               "duration_h": 3,
               "limits": {
                 "hs_max": 1.8,
-                "ws_max": 12
-              }
+                "ws_max": 12,
+                "uc_max": null
+              },
+              "group_with_next": false
             }
           ],
           "infield_move_h": 2
@@ -570,45 +704,87 @@
           "lag_days": -30,
           "load_steps": [
             {
-              "name": "spool cable",
-              "duration_h": 3,
+              "name": "cable load-out (per section)",
+              "duration_h": 6,
               "limits": {
                 "hs_max": null,
-                "ws_max": null
-              }
+                "ws_max": 16,
+                "uc_max": null
+              },
+              "group_with_next": false
             }
           ],
           "transit_limits": {
-            "hs_max": 3.0,
-            "ws_max": 18
+            "hs_max": null,
+            "ws_max": 15
           },
           "install_steps": [
             {
-              "name": "1st end pull-in",
-              "duration_h": 8,
-              "limits": {
-                "hs_max": 1.5,
-                "ws_max": 12
-              }
-            },
-            {
-              "name": "surface lay",
-              "duration_h": 10,
+              "name": "pre pull-in survey",
+              "duration_h": 2,
               "limits": {
                 "hs_max": 2.5,
-                "ws_max": 15
-              }
+                "ws_max": 15,
+                "uc_max": 0.75
+              },
+              "group_with_next": false
             },
             {
-              "name": "2nd end pull-in",
-              "duration_h": 8,
+              "name": "first end pull-in",
+              "duration_h": 2,
               "limits": {
-                "hs_max": 1.5,
-                "ws_max": 12
-              }
+                "hs_max": 2.0,
+                "ws_max": 15,
+                "uc_max": 0.75
+              },
+              "group_with_next": true
+            },
+            {
+              "name": "achieve overpull & secure temporary hang-off",
+              "duration_h": 0.5,
+              "limits": {
+                "hs_max": 2.0,
+                "ws_max": 15,
+                "uc_max": null
+              },
+              "group_with_next": true
+            },
+            {
+              "name": "freelay",
+              "duration_h": 7.7,
+              "limits": {
+                "hs_max": 2.5,
+                "ws_max": 15,
+                "uc_max": null
+              },
+              "group_with_next": true
+            },
+            {
+              "name": "cut and seal cable",
+              "duration_h": 4,
+              "limits": {
+                "hs_max": 2.5,
+                "ws_max": 15,
+                "uc_max": null
+              },
+              "group_with_next": false
+            },
+            {
+              "name": "second end pull-in",
+              "duration_h": 4,
+              "limits": {
+                "hs_max": 2.0,
+                "ws_max": 15,
+                "uc_max": 0.75
+              },
+              "group_with_next": false
             }
           ],
-          "infield_move_h": 1
+          "infield_move_h": 1.5,
+          "survival_limit": {
+            "hs_max": 3.5,
+            "window_h": 24
+          }
         },
         {
           "id": "WTG",
@@ -625,8 +801,10 @@
               "duration_h": 12,
               "limits": {
                 "hs_max": null,
-                "ws_max": 12
-              }
+                "ws_max": 12,
+                "uc_max": null
+              },
+              "group_with_next": false
             }
           ],
           "transit_limits": {
@@ -639,40 +817,50 @@
               "duration_h": 4,
               "limits": {
                 "hs_max": 1.8,
-                "ws_max": 12
-              }
+                "ws_max": 12,
+                "uc_max": null
+              },
+              "group_with_next": false
             },
             {
               "name": "tower",
               "duration_h": 6,
               "limits": {
                 "hs_max": null,
-                "ws_max": 12
-              }
+                "ws_max": 12,
+                "uc_max": null
+              },
+              "group_with_next": false
             },
             {
               "name": "nacelle",
               "duration_h": 7,
               "limits": {
                 "hs_max": null,
-                "ws_max": 10
-              }
+                "ws_max": 10,
+                "uc_max": null
+              },
+              "group_with_next": false
             },
             {
               "name": "blades (3x)",
               "duration_h": 12,
               "limits": {
                 "hs_max": null,
-                "ws_max": 10
-              }
+                "ws_max": 10,
+                "uc_max": null
+              },
+              "group_with_next": false
             },
             {
               "name": "jack-down",
               "duration_h": 3,
               "limits": {
                 "hs_max": 1.8,
-                "ws_max": 12
-              }
+                "ws_max": 12,
+                "uc_max": null
+              },
+              "group_with_next": false
             }
           ],
           "infield_move_h": 2

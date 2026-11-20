@@ -75,6 +75,11 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 #tip b { display: block; margin-bottom: 2px; }
 #msg { color: var(--danger); font-size: 13px; white-space: pre-wrap; }
 .empty { color: var(--text-muted); padding: 40px 0; text-align: center; }
+.warn { border: 1px solid var(--border); border-left: 3px solid var(--series-4); border-radius: 6px; padding: 8px 10px;
+  margin-top: 12px; font-size: 12px; color: var(--text-secondary); }
+.warn b { color: var(--text-primary); }
+td .act { font-size: 11px; padding: 2px 8px; margin-right: 4px; }
+.src { font-size: 11px; color: var(--text-secondary); }
 </style>
 </head>
 <body>
@@ -157,10 +162,12 @@ function render(data) {
       <div class="kv"><span>T&amp;I cost</span><span>${fmtEUR(c.total_cost_eur)}${c.total_cost_eur === bestCost ? '<span class="best">lowest</span>' : ''}</span></div>
     </div>`).join('');
 
+  const warns = data.concepts.flatMap(c => c.warnings.map(w => `${esc(c.name)}: ${esc(w)}`));
+  const warnHtml = warns.length ? `<div class="warn" role="note"><b>⚠ Check</b><br>${[...new Set(warns)].join('<br>')}</div>` : '';
   $('#results').innerHTML = `
     <div class="card"><h2>Concept summary</h2>
       <p class="sub">Weather: ${esc(data.weather_provider)} · P${data.percentile} durations chained per work package</p>
-      <div class="tiles">${tiles}</div></div>
+      <div class="tiles">${tiles}</div>${warnHtml}</div>
     <div class="card"><h2>P${data.percentile} construction schedule</h2>
       <p class="sub">Bar = start to P${data.percentile} finish; whisker = P10–P90 finish range</p>
       <div class="legend">${comps.map(c => `<span><i style="background:${compColor(c)}"></i>${esc(c)}</span>`).join('')}
@@ -283,11 +290,52 @@ function drawTable(data) {
     <td>${p.start}</td><td>${p.p50_end}</td><td class="num">${p.net_duration_days}</td>
     <td class="num">${p.p10_days}</td><td class="num">${p.p50_days}</td><td class="num">${p.p90_days}</td>
     <td class="num">${p.weather_downtime_pct}%</td>
-    <td class="num">${fmtEUR(Object.values(p.cost_eur).reduce((a, b) => a + b, 0))}</td></tr>`)).join('');
+    <td class="num">${fmtEUR(Object.values(p.cost_eur).reduce((a, b) => a + b, 0))}</td>
+    <td class="src">${esc(p.downtime_source)}</td>
+    <td><button class="act" data-act="export" data-c="${esc(c.name)}" data-p="${esc(p.id)}">ABPmer input ↓</button><button
+      class="act" data-act="import" data-c="${esc(c.name)}" data-p="${esc(p.id)}">Import result ↑</button>${p.downtime_source !== 'simulation'
+      ? `<button class="act" data-act="clear" data-c="${esc(c.name)}" data-p="${esc(p.id)}">Use simulation</button>` : ''}</td></tr>`)).join('');
   $('#table').innerHTML = `<table><thead><tr><th>Concept</th><th>Package</th><th>Vessel</th><th>Port</th>
     <th class="num">Qty</th><th class="num">Trips</th><th class="num">Transit nm</th><th>Start</th><th>P50 finish</th>
     <th class="num">Net d</th><th class="num">P10 d</th><th class="num">P50 d</th><th class="num">P90 d</th>
-    <th class="num">Downtime</th><th class="num">Cost</th></tr></thead><tbody>${rows}</tbody></table>`;
+    <th class="num">Downtime</th><th class="num">Cost</th><th>Downtime source</th><th>ABPmer</th></tr></thead><tbody>${rows}</tbody></table>`;
+  $('#table').querySelectorAll('button.act').forEach(b => b.onclick = () => abpmerAction(b.dataset.act, b.dataset.c, b.dataset.p));
+}
+
+function editPackage(concept, pkgId, fn) {
+  const j = JSON.parse(editor.value);
+  const pk = j.concepts.find(c => c.name === concept)?.packages.find(p => p.id === pkgId);
+  if (!pk) throw new Error('Package not found in editor JSON');
+  fn(pk); editor.value = JSON.stringify(j, null, 2);
+}
+
+async function abpmerAction(act, concept, pkgId) {
+  msg.textContent = '';
+  try {
+    if (act === 'export') {
+      const r = await fetch('/api/abpmer/export', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ project: JSON.parse(editor.value), concept, package: pkgId }) });
+      if (!r.ok) { msg.textContent = (await r.json()).detail; return; }
+      const name = (r.headers.get('Content-Disposition') || '').match(/filename="(.+)"/)?.[1] || 'ABPmer_input.xlsx';
+      const a = document.createElement('a'); a.href = URL.createObjectURL(await r.blob()); a.download = name; a.click();
+    } else if (act === 'import') {
+      const inp = document.createElement('input'); inp.type = 'file'; inp.accept = '.xlsx,.xlsm';
+      inp.onchange = async () => {
+        const fd = new FormData(); fd.append('file', inp.files[0]);
+        msg.textContent = 'Reading ABPmer result…';
+        const r = await fetch('/api/abpmer/import', { method: 'POST', body: fd });
+        const d = await r.json();
+        if (!r.ok) { msg.textContent = d.detail; return; }
+        msg.textContent = '';
+        editPackage(concept, pkgId, p => { p.abpmer_result = d.id; });
+        run();
+      };
+      inp.click();
+    } else if (act === 'clear') {
+      editPackage(concept, pkgId, p => { delete p.abpmer_result; });
+      run();
+    }
+  } catch (e) { msg.textContent = String(e); }
 }
 
 function exportCSV() {

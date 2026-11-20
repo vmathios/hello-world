@@ -30,6 +30,35 @@ class SeqStep:
     hs_max: Optional[float] = None
     ws_max: Optional[float] = None
     where: str = "site"      # "port" | "transit" | "site"
+    window_h: Optional[float] = None   # required workable window (>= duration)
+    uc_max: Optional[float] = None     # current limit (not in the synthetic hindcast)
+    group_with_next: bool = False
+    daylight_only: bool = False
+    lat: Optional[float] = None
+    lon: Optional[float] = None
+
+
+def _min(a, b):
+    return b if a is None else a if b is None else min(a, b)
+
+
+def merge_groups(steps: list[SeqStep]) -> list[SeqStep]:
+    """Grouped steps must share one continuous window: merge them, strictest limits apply."""
+    out, cur = [], None
+    for s in steps:
+        if cur is None:
+            cur = s
+        else:
+            cur = SeqStep(f"{cur.name} + {s.name}", cur.duration_h + s.duration_h,
+                          _min(cur.hs_max, s.hs_max), _min(cur.ws_max, s.ws_max), cur.where,
+                          (cur.window_h or cur.duration_h) + (s.window_h or s.duration_h),
+                          _min(cur.uc_max, s.uc_max), s.group_with_next)
+        if not cur.group_with_next:
+            out.append(cur)
+            cur = None
+    if cur is not None:
+        out.append(cur)
+    return out
 
 
 class DowntimeEngine(Protocol):
@@ -76,12 +105,15 @@ class HindcastEngine:
 
     def run_once(self, steps: list[SeqStep], t0: int) -> float:
         t = t0
-        for s in steps:
-            d = max(1, math.ceil(s.duration_h))
+        for s in merge_groups(steps):
+            d = math.ceil(s.duration_h)
+            if d <= 0:
+                continue
             if s.hs_max is None and s.ws_max is None:
                 t += d
                 continue
-            feas = self._feasible_starts(s.hs_max, s.ws_max, d)
+            w = max(d, math.ceil(s.window_h or 0))
+            feas = self._feasible_starts(s.hs_max, s.ws_max, w)
             k = np.searchsorted(feas, t)
             if k >= len(feas):
                 return math.inf          # never a window - limits too strict
@@ -165,8 +197,9 @@ class ExternalEngine:
             "start_date": start.isoformat(),
             "years": years,
             "activities": [
-                {"name": s.name, "duration_h": s.duration_h, "location": s.where,
-                 "limits": {"hs_max": s.hs_max, "ws_max": s.ws_max}}
+                {"name": s.name, "duration_h": s.duration_h, "window_h": s.window_h,
+                 "location": s.where, "lat": s.lat, "lon": s.lon, "group_with_next": s.group_with_next,
+                 "limits": {"hs_max": s.hs_max, "ws_max": s.ws_max, "uc_max": s.uc_max}}
                 for s in steps
             ],
         }

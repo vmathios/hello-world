@@ -8,6 +8,7 @@ import numpy as np
 
 from .models import (Concept, ConceptResult, PackageResult, Project, ProjectResult,
                      WorkPackage, Coord)
+from . import abpmer
 from .weather import SeqStep, get_engine
 
 NM_PER_KM = 1 / 1.852
@@ -21,29 +22,45 @@ def distance_nm(a: Coord, b: Coord) -> float:
     return 2 * r * math.asin(math.sqrt(h)) * NM_PER_KM
 
 
-def build_sequence(pkg: WorkPackage, vessel, transit_nm: float) -> tuple[list[SeqStep], int]:
+def build_sequence(pkg: WorkPackage, vessel, transit_nm: float,
+                   port: Coord | None = None, site: Coord | None = None,
+                   trips_limit: int | None = None) -> tuple[list[SeqStep], int]:
+    """Expand a work package into its full activity list (Pnet, no weather).
+
+    `trips_limit=1` returns a single trip cycle (used for the ABPmer 'repeat N times' export).
+    """
     steps: list[SeqStep] = []
     cap = max(1, vessel.deck_capacity)
     trips = math.ceil(pkg.quantity / cap)
     transit_h = transit_nm / vessel.transit_speed_kn
     tl = pkg.transit_limits
+    f = pkg.contingency_factor
+    plat, plon = (port.lat, port.lon) if port else (None, None)
+    slat, slon = (site.lat, site.lon) if site else (None, None)
+
+    def mk(name, step_or_dur, limits, where, lat, lon):
+        if isinstance(step_or_dur, (int, float)):
+            d, win, grp, day = float(step_or_dur), None, False, False
+        else:
+            d, win, grp, day = (step_or_dur.duration_h, step_or_dur.window_h,
+                                step_or_dur.group_with_next, step_or_dur.daylight_only)
+        return SeqStep(name, d, limits.hs_max, limits.ws_max, where,
+                       win if win is not None else d * f, limits.uc_max, grp, day, lat, lon)
+
     remaining = pkg.quantity
-    for trip in range(trips):
+    for trip in range(trips if trips_limit is None else min(trips, trips_limit)):
         units = min(cap, remaining)
         remaining -= units
         for u in range(units):
             for s in pkg.load_steps:
-                steps.append(SeqStep(f"T{trip+1} load {s.name}", s.duration_h,
-                                     s.limits.hs_max, s.limits.ws_max, "port"))
-        steps.append(SeqStep(f"T{trip+1} transit out", transit_h, tl.hs_max, tl.ws_max, "transit"))
+                steps.append(mk(f"T{trip+1} load {s.name}", s, s.limits, "port", plat, plon))
+        steps.append(mk(f"T{trip+1} transit to site", transit_h, tl, "transit", plat, plon))
         for u in range(units):
             if u > 0 and pkg.infield_move_h > 0:
-                steps.append(SeqStep(f"T{trip+1} infield move", pkg.infield_move_h,
-                                     tl.hs_max, tl.ws_max, "transit"))
+                steps.append(mk(f"T{trip+1} move to next location", pkg.infield_move_h, tl, "transit", slat, slon))
             for s in pkg.install_steps:
-                steps.append(SeqStep(f"T{trip+1} U{u+1} {s.name}", s.duration_h,
-                                     s.limits.hs_max, s.limits.ws_max, "site"))
-        steps.append(SeqStep(f"T{trip+1} transit in", transit_h, tl.hs_max, tl.ws_max, "transit"))
+                steps.append(mk(f"T{trip+1} U{u+1} {s.name}", s, s.limits, "site", slat, slon))
+        steps.append(mk(f"T{trip+1} transit to port", transit_h, tl, "transit", slat, slon))
     return steps, trips
 
 
@@ -79,6 +96,7 @@ def run_concept(project: Project, concept: Concept) -> ConceptResult:
     pct = project.percentile
 
     finish: dict[str, datetime] = {}
+    warnings: list[str] = []
     results: list[PackageResult] = []
     used_ports, used_vessels = set(), set()
     breakdown = {"Vessel spread": 0.0, "Mob/demob": 0.0, "Port": 0.0, "Other": 0.0}
@@ -99,12 +117,24 @@ def run_concept(project: Project, concept: Concept) -> ConceptResult:
         start = max(candidates)
 
         nm = distance_nm(port.location, project.site)
-        steps, trips = build_sequence(pkg, v, nm)
-        net_h = sum(max(1, math.ceil(s.duration_h)) for s in steps)
-        hours = engine.simulate(steps, start.date(), project.hindcast_years)
-        if not np.all(np.isfinite(hours)):
-            raise ValueError(f"{concept.name}: '{pkg.name}' never finds a weather window - check limits")
-        p10, p50, p90 = (float(np.percentile(hours, q)) for q in (10, pct, 90))
+        steps, trips = build_sequence(pkg, v, nm, port.location, project.site)
+        net_h = sum(s.duration_h for s in steps)
+        if pkg.abpmer_result:
+            table = abpmer.load_result(pkg.abpmer_result)
+            p10, p50, p90 = (abpmer.lookup_hours(table, start.date(), q) for q in (10, pct, 90))
+            source = f"ABPmer: {table['operation']}"
+            if net_h > 0 and abs(table["net_days"] * 24 - net_h) / net_h > 0.10:
+                warnings.append(
+                    f"{pkg.name}: ABPmer net duration {table['net_days']:.1f} d differs from the planner's "
+                    f"Pnet {net_h / 24:.1f} d by more than 10% - check the result matches this package.")
+        else:
+            hours = engine.simulate(steps, start.date(), project.hindcast_years)
+            if not np.all(np.isfinite(hours)):
+                raise ValueError(f"{concept.name}: '{pkg.name}' never finds a weather window - check limits")
+            p10, p50, p90 = (float(np.percentile(hours, q)) for q in (10, pct, 90))
+            source = "simulation"
+            if any(s.uc_max is not None for s in steps) and engine.name.startswith("synthetic"):
+                warnings.append(f"{pkg.name}: current limits (Uc) are ignored by the synthetic hindcast.")
         end = start + timedelta(hours=p50)
         finish[pkg.id] = end
         days = p50 / 24
@@ -126,6 +156,7 @@ def run_concept(project: Project, concept: Concept) -> ConceptResult:
             net_duration_days=round(net_h / 24, 1), start=_fmt(start), p50_end=_fmt(end),
             p10_days=round(p10 / 24, 1), p50_days=round(days, 1), p90_days=round(p90 / 24, 1),
             weather_downtime_pct=round(100 * (1 - net_h / p50), 1) if p50 > 0 else 0.0,
+            downtime_source=source,
             cost_eur={k: round(val) for k, val in cost.items()},
         ))
 
@@ -138,6 +169,7 @@ def run_concept(project: Project, concept: Concept) -> ConceptResult:
         total_cost_eur=round(sum(breakdown.values())),
         cost_breakdown_eur={k: round(val) for k, val in breakdown.items()},
         packages=results,
+        warnings=sorted(set(warnings)),
     )
 
 

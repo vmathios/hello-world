@@ -46,3 +46,53 @@ async def upload_hindcast(file: UploadFile) -> dict:
 @app.get("/")
 def index():
     return FileResponse(ROOT / "web" / "index.html")
+
+
+# ---- ABPmer integration ----
+
+from fastapi import Body
+from fastapi.responses import Response
+
+from . import abpmer
+from .engine import build_sequence, distance_nm
+
+XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+
+@app.post("/api/abpmer/export")
+def abpmer_export(project: Project = Body(...), concept: str = Body(...), package: str = Body(...),
+                  mode: str = Body("auto")):
+    """ABPmer input workbook for one work package.
+
+    mode: "full" = every trip listed, repeat 1; "cycle" = one trip, repeat = number of trips;
+    "auto" = cycle when quantity divides evenly into trips, else full.
+    """
+    c = next((c for c in project.concepts if c.name == concept), None)
+    pkg = c and next((p for p in c.packages if p.id == package), None)
+    if not pkg:
+        raise HTTPException(404, f"Package '{package}' not found in concept '{concept}'")
+    v = next((v for v in c.vessels if v.name == pkg.vessel), None)
+    port = next((p for p in c.ports if p.name == pkg.port), None)
+    if not v or not port:
+        raise HTTPException(422, "Package references unknown vessel or port")
+    nm = distance_nm(port.location, project.site)
+    cap = max(1, v.deck_capacity)
+    cycle = mode == "cycle" or (mode == "auto" and pkg.quantity % cap == 0)
+    steps, trips = build_sequence(pkg, v, nm, port.location, project.site, trips_limit=1 if cycle else None)
+    sl = pkg.survival_limit
+    data = abpmer.export_input(f"{pkg.name} - {c.name}", steps, repeat=trips if cycle else 1,
+                               survival=(sl.hs_max, sl.window_h) if sl else (3.5, 24.0))
+    fname = f"ABPmer_input_{c.name}_{pkg.id}".replace(" ", "_")
+    fname = "".join(ch for ch in fname if ch.isalnum() or ch in "_-+") + ".xlsx"
+    return Response(data, media_type=XLSX, headers={"Content-Disposition": f'attachment; filename="{fname}"'})
+
+
+@app.post("/api/abpmer/import")
+async def abpmer_import(file: UploadFile) -> dict:
+    """Upload an ABPmer RESULT workbook; returns an id to set as `abpmer_result` on a package."""
+    try:
+        table = abpmer.parse_result(await file.read())
+    except Exception as e:  # noqa: BLE001 - report any parse problem to the user
+        raise HTTPException(422, f"Could not read ABPmer result: {e}")
+    rid = abpmer.save_result(table)
+    return {"id": rid, **abpmer.summary(table)}

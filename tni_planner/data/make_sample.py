@@ -1,7 +1,9 @@
 """Generates data/sample_project.json - illustrative numbers only."""
 import json, copy, pathlib
 
-S = lambda n, h, hs=None, ws=None: {"name": n, "duration_h": h, "limits": {"hs_max": hs, "ws_max": ws}}
+def S(n, h, hs=None, ws=None, uc=None, group=False):
+    return {"name": n, "duration_h": h, "limits": {"hs_max": hs, "ws_max": ws, "uc_max": uc},
+            "group_with_next": group}
 
 ports = {
     "Eemshaven": {"name": "Eemshaven", "location": {"lat": 53.45, "lon": 6.83}, "day_rate_eur": 15000, "fixed_cost_eur": 1500000},
@@ -25,9 +27,13 @@ mp_jup = copy.deepcopy(mp_hlv) | {"vessel": "JUV-M", "port": "Eemshaven",
           "install_steps": [S("jack-up", 4, 1.8, 12), S("upend & set", 5, None, 12), S("pile driving", 8, None, 15), S("jack-down", 3, 1.8, 12)]}
 cab = {"id": "IAC", "name": "Array cable installation", "component": "Array cable", "quantity": N,
        "vessel": "CLV-1", "port": "Rotterdam", "after": "MP", "lag_days": -30,
-       "load_steps": [S("spool cable", 3, None, None)], "transit_limits": {"hs_max": 3.0, "ws_max": 18},
-       "install_steps": [S("1st end pull-in", 8, 1.5, 12), S("surface lay", 10, 2.5, 15), S("2nd end pull-in", 8, 1.5, 12)],
-       "infield_move_h": 1}
+       # Activity list follows the ABPmer IAC template (durations per cable section)
+       "load_steps": [S("cable load-out (per section)", 6, None, 16)], "transit_limits": {"hs_max": None, "ws_max": 15},
+       "install_steps": [S("pre pull-in survey", 2, 2.5, 15, 0.75), S("first end pull-in", 2, 2.0, 15, 0.75, True),
+                         S("achieve overpull & secure temporary hang-off", 0.5, 2.0, 15, None, True),
+                         S("freelay", 7.7, 2.5, 15, None, True), S("cut and seal cable", 4, 2.5, 15),
+                         S("second end pull-in", 4, 2.0, 15, 0.75)],
+       "infield_move_h": 1.5, "survival_limit": {"hs_max": 3.5, "window_h": 24}}
 wtg = {"id": "WTG", "name": "WTG installation", "component": "Wind turbine", "quantity": N,
        "vessel": "WTIV-1", "port": "Eemshaven", "after": "MP", "lag_days": 0,
        "load_steps": [S("load-out WTG set", 12, None, 12)], "transit_limits": {"hs_max": 2.5, "ws_max": 15},

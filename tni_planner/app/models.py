@@ -15,14 +15,23 @@ class Coord(BaseModel):
 class WeatherLimits(BaseModel):
     """Operational limits. None = not weather sensitive for that parameter."""
     hs_max: Optional[float] = Field(None, description="Significant wave height limit [m]")
-    ws_max: Optional[float] = Field(None, description="Wind speed limit [m/s] (at reference height)")
+    ws_max: Optional[float] = Field(None, description="Wind speed limit Uw,10 [m/s] (10 m, 10-min mean)")
+    uc_max: Optional[float] = Field(None, description="Current speed limit Uc [m/s]")
 
 
 class Step(BaseModel):
     """One non-splittable activity: needs a continuous weather window of `duration_h`."""
     name: str
     duration_h: float
+    window_h: Optional[float] = Field(None, description="Required weather window (planned + contingency); default duration x contingency_factor")
     limits: WeatherLimits = WeatherLimits()
+    group_with_next: bool = Field(False, description="Must be done in the same weather window as the next step")
+    daylight_only: bool = False
+
+
+class SurvivalLimit(BaseModel):
+    hs_max: float = 3.5
+    window_h: float = 24
 
 
 class Port(BaseModel):
@@ -56,6 +65,9 @@ class WorkPackage(BaseModel):
     transit_limits: WeatherLimits = WeatherLimits()
     install_steps: list[Step] = []     # per unit, at site
     infield_move_h: float = 2.0        # between installation positions
+    contingency_factor: float = 1.5    # weather window = duration x factor (ABPmer "Weather window")
+    survival_limit: Optional[SurvivalLimit] = None
+    abpmer_result: Optional[str] = Field(None, description="ID of an imported ABPmer result; overrides built-in simulation")
     extra_costs_eur: float = 0.0
 
 
@@ -102,6 +114,7 @@ class PackageResult(BaseModel):
     p50_days: float
     p90_days: float
     weather_downtime_pct: float
+    downtime_source: str = "simulation"
     cost_eur: dict[str, float]
 
 
@@ -114,6 +127,7 @@ class ConceptResult(BaseModel):
     total_cost_eur: float
     cost_breakdown_eur: dict[str, float]
     packages: list[PackageResult]
+    warnings: list[str] = []
 
 
 class ProjectResult(BaseModel):
